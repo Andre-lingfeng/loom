@@ -1,0 +1,21 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+npm-debug.log*
+pnpm-debug.log*
+
+# 构建产物：pdfjs worker 由 scripts/copy-pdf-worker.mjs 在 build 前生成
+public/pdf.worker.mjs
+
+# 本地备份导出
+loom-backup-*.json
+
+# 临时补丁脚本
+.tmp-*

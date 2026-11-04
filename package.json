@@ -1,0 +1,42 @@
+{
+  "name": "agent-studio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"lib/**/*.test.ts\"",
+    "audit:ui": "node scripts/audit.mjs",
+    "verify": "pnpm audit:ui && pnpm typecheck && pnpm test",
+    "demo": "next build && next start -p 3000",
+    "demo:lan": "next start -p 3000 -H 0.0.0.0",
+    "postinstall": "node scripts/copy-pdf-worker.mjs",
+    "prebuild": "node scripts/copy-pdf-worker.mjs",
+    "test:e2e": "node tests/e2e.mjs",
+    "verify:full": "pnpm verify && pnpm test:e2e"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.0",
+    "pdfjs-dist": "^6.5.438",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.186.1",
+    "unpdf": "^2.1.0",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.186.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2"
+  },
+  "type": "module"
+}

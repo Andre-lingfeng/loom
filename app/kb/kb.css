@@ -1,0 +1,558 @@
+/* ---------------------------------------------------------------
+ * Aurora 视觉语言（移植自 Aurora-Sign-Up/src/index.css）
+ * 现在服务于 /kb 主界面：黑底、白色透明度层次、紫色强调。
+ * Tailwind 由 app/globals.css 提供，这里只保留字体与通行证卡片。
+ * --------------------------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+
+.aurora-root {
+  /* 配色单一来源：组件里只允许引用这些变量，不写裸 hex */
+  --kb-bg: #000000;
+  --kb-surface: #101010;
+  --kb-surface-2: #141414;
+  --kb-input: #1a1a1a;
+  --kb-panel: #080809;
+  --kb-modal: #0c0c0c;
+  /* 关联图谱：连线颜色按关系强度分档 */
+  --kb-edge-strong: #a78bfa;
+  --kb-edge-mid: #60a5fa;
+  --kb-edge-weak: #475569;
+  --kb-node-new: #c4b5fd;
+  /* ---------- 关联图谱调色板（浅色 / 深色两套） ---------- */
+  --kb-graph-dust: #f6e7c8;
+  --kb-graph-light-kind-supports: #7c3aed;
+  --kb-graph-light-kind-contradicts: #dc2626;
+  --kb-graph-light-kind-duplicates: #64748b;
+  --kb-graph-light-kind-related: #2563eb;
+  --kb-graph-dark-kind-supports: #a78bfa;
+  --kb-graph-dark-kind-contradicts: #f87171;
+  --kb-graph-dark-kind-duplicates: #94a3b8;
+  --kb-graph-dark-kind-related: #60a5fa;
+
+  --kb-graph-warm-1: #fde68a;
+  --kb-graph-warm-2: #fbbf24;
+  --kb-graph-warm-3: #fb923c;
+  --kb-graph-warm-4: #f5f5f5;
+
+  --kb-graph-light-bg: #e9e9e9;
+  --kb-graph-light-shell: #0f172a;
+  --kb-graph-light-ring: #111827;
+  --kb-graph-light-edge-strong: #7c3aed;
+  --kb-graph-light-edge-mid: #2563eb;
+  --kb-graph-light-edge-weak: #94a3b8;
+  --kb-graph-light-node-strong: #6d28d9;
+  --kb-graph-light-node-mid: #1d4ed8;
+  --kb-graph-light-node-weak: #334155;
+  --kb-graph-light-label: rgba(15,23,42,0.72);
+  --kb-graph-light-label-hover: rgba(15,23,42,0.98);
+  --kb-graph-light-label-shadow: 0 1px 3px rgba(255,255,255,0.85);
+
+  --kb-graph-dark-bg: #09090c;
+  --kb-graph-dark-shell: #94a3b8;
+  --kb-graph-dark-ring: #ffffff;
+  --kb-graph-dark-edge-strong: #a78bfa;
+  --kb-graph-dark-edge-mid: #60a5fa;
+  --kb-graph-dark-edge-weak: #475569;
+  --kb-graph-dark-node-strong: #a78bfa;
+  --kb-graph-dark-node-mid: #60a5fa;
+  --kb-graph-dark-node-weak: #e2e8f0;
+  --kb-graph-dark-label: rgba(255,255,255,0.55);
+  --kb-graph-dark-label-hover: rgba(255,255,255,0.98);
+  --kb-graph-dark-label-shadow: 0 1px 4px rgba(0,0,0,0.9);
+
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "PingFang SC", sans-serif;
+  background: #000;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+.aurora-root input:-webkit-autofill,
+.aurora-root input:-webkit-autofill:hover,
+.aurora-root input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset;
+  box-shadow: 0 0 0 1000px #1a1a1a inset;
+  caret-color: #fff;
+}
+
+/* 入场：逐条上浮，替代 motion/react */
+@keyframes aurora-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.aurora-rise {
+  animation: aurora-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes aurora-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.aurora-fade {
+  animation: aurora-fade 0.7s ease-out both;
+}
+
+/* 顶部极光：纯 CSS，不额外加载图片 */
+.aurora-glow {
+  background:
+    radial-gradient(60% 100% at 50% 0%, rgba(124, 58, 237, 0.22), transparent 70%),
+    radial-gradient(40% 80% at 85% 0%, rgba(56, 189, 248, 0.10), transparent 70%);
+}
+
+/* Aurora member pass — adapted from the Uiverse ticket effect */
+.ticket-canvas {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2em;
+}
+
+.ticket-wrapper {
+  --t-bg: #1e1e24;
+  --t-bg-light: #2b2b36;
+  --t-accent: #7c3aed;
+  --t-accent-glow: rgba(124, 58, 237, 0.5);
+  --t-text-main: #f8fafc;
+  --t-text-muted: #94a3b8;
+  font-size: 10px;
+  perspective: 1000px;
+  display: inline-block;
+}
+
+.ticket {
+  position: relative;
+  width: 22em;
+  color: var(--t-text-main);
+  font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.6s ease;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  background: transparent;
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5));
+}
+
+.ticket-wrapper:hover .ticket {
+  transform: rotateX(5deg) rotateY(-10deg) scale(1.02);
+  box-shadow:
+    20px 20px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    -5px -5px 20px var(--t-accent-glow);
+}
+
+.ticket::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1em;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.1) 55%,
+    transparent 60%,
+    transparent 100%
+  );
+  z-index: 10;
+  background-size: 250% 250%;
+  background-position: 100% 100%;
+  transition: background-position 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  mix-blend-mode: overlay;
+}
+
+.ticket-wrapper:hover .ticket::after {
+  background-position: 0% 0%;
+}
+
+.t-main {
+  padding: 2em;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(
+      circle at bottom left,
+      transparent 1em,
+      var(--t-bg) 1.05em
+    ),
+    radial-gradient(circle at bottom right, transparent 1em, var(--t-bg) 1.05em);
+  background-size: 51% 100%;
+  background-position:
+    bottom left,
+    bottom right;
+  background-repeat: no-repeat;
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+}
+
+.t-main::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(
+      rgba(124, 58, 237, 0.15) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.15) 1px, transparent 1px);
+  background-size: 2em 2em;
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+  transform: perspective(500px) rotateX(20deg) scale(1.5);
+}
+
+.t-content {
+  position: relative;
+  z-index: 1;
+}
+
+.t-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2em;
+}
+
+.t-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 900;
+  font-size: 1.2em;
+  letter-spacing: -0.05em;
+  color: #fff;
+}
+
+.t-logo svg {
+  width: 1.5em;
+  height: 1.5em;
+  fill: var(--t-accent);
+  filter: drop-shadow(0 0 5px var(--t-accent));
+}
+
+.t-type {
+  font-size: 0.6em;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--t-accent);
+  border: 1px solid var(--t-accent);
+  padding: 0.4em 0.8em;
+  border-radius: 99em;
+  font-weight: 700;
+}
+
+.t-title {
+  font-size: 2.5em;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 0.2em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.t-subtitle {
+  color: var(--t-text-muted);
+  font-size: 0.9em;
+  margin-bottom: 2.5em;
+}
+
+.t-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5em;
+  margin-bottom: 1em;
+}
+
+.t-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.t-label {
+  font-size: 0.6em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--t-text-muted);
+}
+
+.t-value {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: var(--t-text-main);
+}
+
+.t-perforation {
+  display: flex;
+  justify-content: space-between;
+  height: 1em;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.t-perf-line {
+  flex-grow: 1;
+  height: 0;
+  border-top: 2px dashed rgba(255, 255, 255, 0.2);
+  margin: 0 1.5em;
+}
+
+.t-stub {
+  padding: 2em;
+  background: radial-gradient(
+      circle at top left,
+      transparent 1em,
+      var(--t-bg-light) 1.05em
+    ),
+    radial-gradient(
+      circle at top right,
+      transparent 1em,
+      var(--t-bg-light) 1.05em
+    );
+  background-size: 51% 100%;
+  background-position:
+    top left,
+    top right;
+  background-repeat: no-repeat;
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.t-barcode-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.t-barcode {
+  width: 10em;
+  height: 3em;
+  background: repeating-linear-gradient(
+    90deg,
+    #fff 0,
+    #fff 2px,
+    transparent 2px,
+    transparent 4px,
+    #fff 4px,
+    #fff 5px,
+    transparent 5px,
+    transparent 8px,
+    #fff 8px,
+    #fff 12px,
+    transparent 12px,
+    transparent 15px,
+    #fff 15px,
+    #fff 16px,
+    transparent 16px,
+    transparent 18px
+  );
+  opacity: 0.8;
+}
+
+.t-barcode-id {
+  font-family: monospace;
+  font-size: 0.7em;
+  color: var(--t-text-muted);
+  letter-spacing: 0.2em;
+  text-align: justify;
+}
+
+.t-admit {
+  text-align: right;
+}
+
+.t-admit-text {
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--t-text-muted);
+}
+
+.t-admit-num {
+  font-size: 3em;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--t-accent);
+  text-shadow: 0 0 15px var(--t-accent-glow);
+}
+
+.ticket-wrapper:active .ticket {
+  transform: rotateX(15deg) rotateY(-5deg) scale(0.98);
+}
+
+.ticket-wrapper:active .t-stub {
+  transform: translateY(5px) rotateZ(2deg);
+  opacity: 0.8;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+/* Scale the pass to fit beside the onboarding copy at desktop widths. */
+.hero-ticket .ticket-wrapper {
+  font-size: 9px;
+}
+
+@media (min-width: 1440px) {
+  .hero-ticket .ticket-wrapper {
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .hero-ticket .ticket-wrapper {
+    font-size: 10.5px;
+  }
+}
+
+
+/* ---------------------------------------------------------------
+ * 环境光与材质：让黑底不再是纯平的黑色
+ * 三个缓慢漂移的光斑（合成层动画，不触发重排）+ 一层极淡颗粒
+ * --------------------------------------------------------------- */
+
+.kb-ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.kb-ambient__blob {
+  position: absolute;
+  display: block;
+  width: 58vw;
+  height: 58vw;
+  min-width: 520px;
+  min-height: 520px;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.kb-ambient__blob--a {
+  top: -22%;
+  left: 8%;
+  opacity: 0.42;
+  background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.55), transparent 68%);
+  animation: kb-drift-a 48s ease-in-out infinite alternate;
+}
+
+.kb-ambient__blob--b {
+  top: -12%;
+  right: -6%;
+  opacity: 0.36;
+  background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.42), transparent 66%);
+  animation: kb-drift-b 62s ease-in-out infinite alternate;
+}
+
+.kb-ambient__blob--c {
+  bottom: -30%;
+  left: 32%;
+  opacity: 0.22;
+  background: radial-gradient(circle at 50% 50%, rgba(244, 114, 182, 0.35), transparent 70%);
+  animation: kb-drift-c 74s ease-in-out infinite alternate;
+}
+
+/* 极淡的噪点：打散大面积深色渐变，避免出现色带 */
+.kb-ambient__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.9) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+}
+
+@keyframes kb-drift-a {
+  from { transform: translate3d(-4%, 0, 0) scale(1); }
+  to { transform: translate3d(6%, 5%, 0) scale(1.12); }
+}
+
+@keyframes kb-drift-b {
+  from { transform: translate3d(3%, 0, 0) scale(1.08); }
+  to { transform: translate3d(-5%, 6%, 0) scale(1); }
+}
+
+@keyframes kb-drift-c {
+  from { transform: translate3d(0, 4%, 0) scale(1); }
+  to { transform: translate3d(-6%, -6%, 0) scale(1.14); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-ambient__blob { animation: none; }
+}
+
+/* 主面板：一点内高光与更深的投影，让内容"浮"在黑底上 */
+.kb-panel {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 28px 60px -30px rgba(0, 0, 0, 0.9);
+}
+
+/* 侧栏选中态：渐变底 + 左侧光条 */
+.kb-nav-active {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 6px 18px -12px rgba(167, 139, 250, 0.8);
+}
+
+.kb-nav-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #c4b5fd, #60a5fa);
+}
+
+/* 卡片悬停：轻微上浮 + 边缘提亮，保持克制 */
+.kb-card-hover {
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.kb-card-hover:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 16px 36px -24px rgba(0, 0, 0, 0.95);
+}
+
+/* 卡片：顶亮底暗的极淡渐变 + 内高光，避免大面积纯色显得平 */
+.kb-card {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+/* 面板顶部一层柔光，界定内容区起点 */
+.kb-panel::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 160px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(167, 139, 250, 0.09), transparent 70%);
+}
