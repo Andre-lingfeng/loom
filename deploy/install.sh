@@ -11,7 +11,7 @@ set -euo pipefail
 
 REPO="${REPO:-https://github.com/Andre-lingfeng/loom.git}"
 APP_DIR="${APP_DIR:-/opt/loom}"
-PORT="${PORT:-3000}"
+PORT="${PORT:-80}"
 NODE_MAJOR="${NODE_MAJOR:-22}"
 
 log() { printf '\n\033[1;36m▸ %s\033[0m\n' "$1"; }
