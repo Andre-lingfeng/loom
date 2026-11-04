@@ -55,6 +55,9 @@ export function GraphView() {
   const [webglFailed, setWebglFailed] = useState(false);
   const [focusPair, setFocusPair] = useState<{ a: string; b: string } | null>(null);
   const [hasKey, setHasKey] = useState(false);
+  const serverCloud = useKb((s) => s.serverCloud);
+  // 自己填了 Key，或服务端预置了 Key，都能跑云端分析
+  const canCloud = hasKey || Boolean(serverCloud?.relations);
   const router = useRouter();
 
   // 选中某条素材时，只列它自己的关联；未选中才显示全库前 5
@@ -683,23 +686,23 @@ export function GraphView() {
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
             onClick={() => {
-              if (!hasKey) {
+              if (!canCloud) {
                 router.push("/kb/settings");
                 return;
               }
               void refreshEdges();
             }}
-            disabled={hasKey && (edgeStatus === "loading" || sources.length < 2)}
+            disabled={canCloud && (edgeStatus === "loading" || sources.length < 2)}
             className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-2xs text-white/45 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {!hasKey ? (
+            {!canCloud ? (
               <Link2 size={11} />
             ) : edgeStatus === "loading" ? (
               <Loader2 size={11} className="animate-spin" />
             ) : (
               <Sparkles size={11} />
             )}
-            {!hasKey ? "配置模型" : edgeStatus === "loading" ? "分析中…" : "云端重算"}
+            {!canCloud ? "配置模型" : edgeStatus === "loading" ? "分析中…" : "云端重算"}
           </button>
           <button
             onClick={() => setMode(mode === "light" ? "dark" : "light")}

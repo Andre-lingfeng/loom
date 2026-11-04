@@ -129,6 +129,8 @@ interface KbStore {
   autoRecompute: boolean;
   /** 是否显示「恢复演示数据」入口（默认隐藏，避免误触清空） */
   showReset: boolean;
+  /** 服务端能力（来自 /api/health）：没有自带 Key 时也能云端分析 */
+  serverCloud: { relations: boolean; generate: boolean; vision: boolean } | null;
   /** 内容冲突：由云端「矛盾」关系派生 */
   conflicts: Conflict[];
 
@@ -160,6 +162,7 @@ interface KbStore {
   generateCloudAnswer: () => Promise<void>;
   setAutoRecompute: (value: boolean) => void;
   setShowReset: (value: boolean) => void;
+  loadServerCloud: () => Promise<void>;
 }
 
 export const useKb = create<KbStore>()((set, get) => ({
@@ -179,6 +182,7 @@ export const useKb = create<KbStore>()((set, get) => ({
   edgeSavedAt: null,
   autoRecompute: false,
   showReset: false,
+  serverCloud: null,
   conflicts: [],
   briefCloud: null,
   briefStatus: "idle",
@@ -438,6 +442,28 @@ export const useKb = create<KbStore>()((set, get) => ({
         answerStatus: "error",
         answerError: error instanceof Error ? error.message : "生成失败",
       });
+    }
+  },
+
+  loadServerCloud: async () => {
+    try {
+      const res = await fetch("/api/health", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        features?: { cloud?: { relations?: boolean; generate?: boolean; vision?: boolean } };
+      };
+      const cloud = data.features?.cloud;
+      if (!cloud) return;
+
+      set({
+        serverCloud: {
+          relations: Boolean(cloud.relations),
+          generate: Boolean(cloud.generate),
+          vision: Boolean(cloud.vision),
+        },
+      });
+    } catch {
+      /* 离线时保持 null，退回纯本地模式 */
     }
   },
 

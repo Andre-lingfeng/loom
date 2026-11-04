@@ -31,9 +31,14 @@ export function KbShell() {
   const hydrated = useKb((s) => s.hydrated);
   const hydrate = useKb((s) => s.hydrate);
   const view = useKb((s) => s.view);
+  const loadServerCloud = useKb((s) => s.loadServerCloud);
   const sources = useKb((s) => s.sources);
   const selectedId = useKb((s) => s.selectedId);
   const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    void loadServerCloud();
+  }, [loadServerCloud]);
 
   useEffect(() => {
     hydrate();
