@@ -66,7 +66,9 @@ async function connect() {
     try {
       const res = await fetch(`http://127.0.0.1:${port}/json`);
       const list = await res.json();
-      target = list.find((item) => item.type === "page" && item.url.includes("3000"));
+      // 只认当前被测站点，不写死端口（本地 3000 / 线上 80 都适用）
+      const host = new URL(BASE).host;
+      target = list.find((item) => item.type === "page" && item.url.includes(host));
       if (target?.webSocketDebuggerUrl) break;
     } catch {
       /* 启动中 */
