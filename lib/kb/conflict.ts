@@ -18,10 +18,6 @@ export async function analyzeConflict(
   reason: string,
 ): Promise<ConflictAnalysis> {
   const config = loadConfig();
-  if (!config.apiKey) {
-    throw new Error("还没配置模型，先去「模型接入」填一个 Key");
-  }
-
   const response = await fetch("/api/generate", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -72,10 +68,6 @@ export async function askAboutConflict(
   question: string,
 ): Promise<string> {
   const config = loadConfig();
-  if (!config.apiKey) {
-    throw new Error("还没配置模型，先去「模型接入」填一个 Key");
-  }
-
   const response = await fetch("/api/generate", {
     method: "POST",
     headers: { "content-type": "application/json" },

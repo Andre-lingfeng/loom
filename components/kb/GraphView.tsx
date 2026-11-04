@@ -684,26 +684,29 @@ export function GraphView() {
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {/* 配置入口常驻：即使用服务端 Key，也能换成自己的 */}
           <button
-            onClick={() => {
-              if (!canCloud) {
-                router.push("/kb/settings");
-                return;
-              }
-              void refreshEdges();
-            }}
-            disabled={canCloud && (edgeStatus === "loading" || sources.length < 2)}
-            className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-2xs text-white/45 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => router.push("/kb/settings")}
+            title="配置自己的模型（可选）"
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-2xs text-white/45 transition-colors hover:border-white/25 hover:text-white"
           >
-            {!canCloud ? (
-              <Link2 size={11} />
-            ) : edgeStatus === "loading" ? (
+            <Link2 size={11} />
+            配置模型
+          </button>
+
+          <button
+            onClick={() => void refreshEdges()}
+            disabled={!canCloud || edgeStatus === "loading" || sources.length < 2}
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-2xs text-white/45 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {edgeStatus === "loading" ? (
               <Loader2 size={11} className="animate-spin" />
             ) : (
               <Sparkles size={11} />
             )}
-            {!canCloud ? "配置模型" : edgeStatus === "loading" ? "分析中…" : "云端重算"}
+            {edgeStatus === "loading" ? "分析中…" : "云端重算"}
           </button>
+
           <button
             onClick={() => setMode(mode === "light" ? "dark" : "light")}
             className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-2xs text-white/45 transition-colors hover:border-white/25 hover:text-white"

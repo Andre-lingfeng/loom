@@ -21,10 +21,6 @@ export async function requestRelations(
   sources: Source[],
 ): Promise<{ edges: GraphEdge[]; tokens: number | null }> {
   const config = loadConfig();
-  if (!config.apiKey) {
-    throw new Error("还没配置模型，先去「模型接入」填一个 Key");
-  }
-
   const response = await fetch("/api/relations", {
     method: "POST",
     headers: { "content-type": "application/json" },

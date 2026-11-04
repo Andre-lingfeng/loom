@@ -17,10 +17,6 @@ function usable(sources: Source[], limit: number): Source[] {
 
 async function post(body: Record<string, unknown>): Promise<GenerateResult> {
   const config = loadConfig();
-  if (!config.apiKey) {
-    throw new Error("还没配置模型，先去「模型接入」填一个 Key");
-  }
-
   const response = await fetch("/api/generate", {
     method: "POST",
     headers: { "content-type": "application/json" },
