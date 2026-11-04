@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { clientIp, consumeQuota, resolveTextModel } from "@/lib/server/model";
+import {
+  clientIp,
+  consumeQuota,
+  recordTokens,
+  resolveTextModel,
+} from "@/lib/server/model";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -240,6 +245,9 @@ export async function POST(request: Request) {
       choices?: { message?: { content?: string } }[];
       usage?: { total_tokens?: number };
     };
+
+    // 共享 Key 的消耗计入每日 token 预算
+    if (resolved.shared) recordTokens(data.usage?.total_tokens ?? null);
 
     const text = data.choices?.[0]?.message?.content?.trim() ?? "";
     if (text.length < 8) {

@@ -95,6 +95,11 @@ export function clientIp(request: Request): string {
   return request.headers.get("x-real-ip") ?? "local";
 }
 
+const TOKEN_BUDGET_PER_DAY = Number(process.env.DEMO_TOKEN_BUDGET ?? 300_000);
+
+/** 共享 Key 当天已消耗的 token（进程内计数，重启清零） */
+let tokenUsage: Bucket = { day: "", count: 0 };
+
 const FETCH_PER_IP_PER_DAY = Number(process.env.FETCH_PER_IP_PER_DAY ?? 60);
 const FETCH_GLOBAL_PER_DAY = Number(process.env.FETCH_GLOBAL_PER_DAY ?? 600);
 
@@ -130,12 +135,44 @@ export function consumeFetchQuota(
   return { ok: true };
 }
 
+/** 共享 Key 的 token 预算是否还有余量 */
+export function tokenBudgetLeft(): number {
+  const day = today();
+  if (tokenUsage.day !== day) tokenUsage = { day, count: 0 };
+  return Math.max(0, TOKEN_BUDGET_PER_DAY - tokenUsage.count);
+}
+
+/** 调用结束后记账；只统计共享 Key 的消耗 */
+export function recordTokens(tokens: number | null | undefined): void {
+  if (!tokens || !Number.isFinite(tokens)) return;
+  const day = today();
+  if (tokenUsage.day !== day) tokenUsage = { day, count: 0 };
+  tokenUsage.count += Math.floor(tokens);
+}
+
+export function tokenBudgetState(): { used: number; total: number; left: number } {
+  const day = today();
+  if (tokenUsage.day !== day) tokenUsage = { day, count: 0 };
+  return {
+    used: tokenUsage.count,
+    total: TOKEN_BUDGET_PER_DAY,
+    left: Math.max(0, TOKEN_BUDGET_PER_DAY - tokenUsage.count),
+  };
+}
+
 export function consumeQuota(ip: string): { ok: true } | { ok: false; reason: string } {
   const day = today();
 
   if (global.day !== day) global = { day, count: 0 };
   if (global.count >= GLOBAL_PER_DAY) {
     return { ok: false, reason: "今日演示额度已用完，可在「模型接入」填自己的 Key 继续使用" };
+  }
+
+  if (tokenBudgetLeft() <= 0) {
+    return {
+      ok: false,
+      reason: "今日演示额度已用完，可在「模型接入」填自己的 Key 继续使用",
+    };
   }
 
   const bucket = perIp.get(ip);

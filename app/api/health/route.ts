@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { tokenBudgetState } from "@/lib/server/model";
+
 export const dynamic = "force-dynamic";
 
 /**
@@ -16,6 +18,7 @@ export async function GET() {
       ok: true,
       time: new Date().toISOString(),
       runtime: process.env.VERCEL ? "vercel" : "node",
+      quota: tokenBudgetState(),
       features: {
         localOnly: ["检索", "缺口检测", "简报", "图谱（本地算法）"],
         cloud: {

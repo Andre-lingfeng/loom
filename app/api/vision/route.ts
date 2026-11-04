@@ -4,6 +4,7 @@ import {
   clientIp,
   consumeQuota,
   resolveVisionModel,
+  recordTokens,
 } from "@/lib/server/model";
 
 export const dynamic = "force-dynamic";
@@ -132,6 +133,8 @@ export async function POST(request: Request) {
       choices?: { message?: { content?: string | { text?: string }[] } }[];
       usage?: { total_tokens?: number };
     };
+
+    if (resolved.shared) recordTokens(data.usage?.total_tokens ?? null);
 
     const content = data.choices?.[0]?.message?.content;
     const text =
