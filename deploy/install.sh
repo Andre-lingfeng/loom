@@ -30,7 +30,8 @@ $SUDO apt-get install -y -qq curl git ca-certificates
 
 log "2/6 安装 Node ${NODE_MAJOR}"
 if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt "$NODE_MAJOR" ]; then
-  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | $SUDO -E bash -
+  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" > /tmp/nodesource.sh
+  if [ -n "$SUDO" ]; then $SUDO -E bash /tmp/nodesource.sh; else bash /tmp/nodesource.sh; fi
   $SUDO apt-get install -y -qq nodejs
 fi
 node -v
