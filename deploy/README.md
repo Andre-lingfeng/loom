@@ -49,7 +49,7 @@ sudo chmod 600 /opt/loom/.env.production
 
 ```bash
 cd /opt/loom
-pm2 start pnpm --name loom -- start -- -p 3000
+PORT=3000 pm2 start pnpm --name loom -- start
 pm2 save
 pm2 startup          # 按提示复制输出的那条命令执行，开机自启
 ```

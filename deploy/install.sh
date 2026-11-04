@@ -88,7 +88,7 @@ pnpm build
 
 log "6/6 启动服务"
 pm2 delete loom >/dev/null 2>&1 || true
-pm2 start pnpm --name loom -- start -- -p "$PORT"
+PORT="$PORT" pm2 start pnpm --name loom -- start
 pm2 save >/dev/null
 $SUDO env PATH="$PATH" pm2 startup systemd -u "$(id -un)" --hp "$HOME" >/dev/null 2>&1 || \
   warn "开机自启需要手动执行：pm2 startup"
