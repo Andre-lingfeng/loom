@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   clientIp,
   consumeQuota,
+  recordTokens,
   resolveTextModel,
 } from "@/lib/server/model";
 
@@ -286,6 +287,9 @@ export async function POST(request: Request) {
         { status: 502 },
       );
     }
+
+    // 共享 Key 的消耗计入每日 token 预算
+    if (resolved.shared) recordTokens(data.usage?.total_tokens ?? null);
 
     return NextResponse.json({
       relations,
