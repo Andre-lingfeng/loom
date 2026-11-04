@@ -84,8 +84,22 @@ const GLOBAL_PER_DAY = Number(process.env.DEMO_QUOTA_GLOBAL ?? 300);
 
 type Bucket = { day: string; count: number };
 
-const perIp = new Map<string, Bucket>();
-let global: Bucket = { day: "", count: 0 };
+interface QuotaStore {
+  perIp: Map<string, Bucket>;
+  global: Bucket;
+  token: Bucket;
+  fetchPerIp: Map<string, Bucket>;
+  fetchGlobal: Bucket;
+}
+
+// 关键：挂在 globalThis 上，否则每个 API 路由各有一份独立计数
+const store = ((globalThis as typeof globalThis & { __loomQuota?: QuotaStore }).__loomQuota ??= {
+  perIp: new Map(),
+  global: { day: "", count: 0 },
+  token: { day: "", count: 0 },
+  fetchPerIp: new Map(),
+  fetchGlobal: { day: "", count: 0 },
+});
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -98,13 +112,12 @@ export function clientIp(request: Request): string {
 const TOKEN_BUDGET_PER_DAY = Number(process.env.DEMO_TOKEN_BUDGET ?? 300_000);
 
 /** 共享 Key 当天已消耗的 token（进程内计数，重启清零） */
-let tokenUsage: Bucket = { day: "", count: 0 };
+
 
 const FETCH_PER_IP_PER_DAY = Number(process.env.FETCH_PER_IP_PER_DAY ?? 60);
 const FETCH_GLOBAL_PER_DAY = Number(process.env.FETCH_GLOBAL_PER_DAY ?? 600);
 
-let fetchGlobal: Bucket = { day: "", count: 0 };
-const fetchPerIp = new Map<string, Bucket>();
+
 
 /** 抓取 / 解析类接口的额度（与模型额度分开计数） */
 export function consumeFetchQuota(
@@ -112,23 +125,23 @@ export function consumeFetchQuota(
 ): { ok: true } | { ok: false; reason: string } {
   const day = today();
 
-  if (fetchGlobal.day !== day) fetchGlobal = { day, count: 0 };
-  if (fetchGlobal.count >= FETCH_GLOBAL_PER_DAY) {
+  if (store.fetchGlobal.day !== day) store.fetchGlobal = { day, count: 0 };
+  if (store.fetchGlobal.count >= FETCH_GLOBAL_PER_DAY) {
     return { ok: false, reason: "今天全站的抓取次数已用完，明天再试或改用「粘贴」" };
   }
 
-  const bucket = fetchPerIp.get(ip);
+  const bucket = store.fetchPerIp.get(ip);
   const count = bucket && bucket.day === day ? bucket.count : 0;
   if (count >= FETCH_PER_IP_PER_DAY) {
     return { ok: false, reason: `今天的抓取次数已用完（${FETCH_PER_IP_PER_DAY} 次），改用「粘贴」不受影响` };
   }
 
-  fetchPerIp.set(ip, { day, count: count + 1 });
-  fetchGlobal.count += 1;
+  store.fetchPerIp.set(ip, { day, count: count + 1 });
+  store.fetchGlobal.count += 1;
 
-  if (fetchPerIp.size > 2000) {
-    for (const [key, value] of fetchPerIp) {
-      if (value.day !== day) fetchPerIp.delete(key);
+  if (store.fetchPerIp.size > 2000) {
+    for (const [key, value] of store.fetchPerIp) {
+      if (value.day !== day) store.fetchPerIp.delete(key);
     }
   }
 
@@ -138,33 +151,33 @@ export function consumeFetchQuota(
 /** 共享 Key 的 token 预算是否还有余量 */
 export function tokenBudgetLeft(): number {
   const day = today();
-  if (tokenUsage.day !== day) tokenUsage = { day, count: 0 };
-  return Math.max(0, TOKEN_BUDGET_PER_DAY - tokenUsage.count);
+  if (store.token.day !== day) store.token = { day, count: 0 };
+  return Math.max(0, TOKEN_BUDGET_PER_DAY - store.token.count);
 }
 
 /** 调用结束后记账；只统计共享 Key 的消耗 */
 export function recordTokens(tokens: number | null | undefined): void {
   if (!tokens || !Number.isFinite(tokens)) return;
   const day = today();
-  if (tokenUsage.day !== day) tokenUsage = { day, count: 0 };
-  tokenUsage.count += Math.floor(tokens);
+  if (store.token.day !== day) store.token = { day, count: 0 };
+  store.token.count += Math.floor(tokens);
 }
 
 export function tokenBudgetState(): { used: number; total: number; left: number } {
   const day = today();
-  if (tokenUsage.day !== day) tokenUsage = { day, count: 0 };
+  if (store.token.day !== day) store.token = { day, count: 0 };
   return {
-    used: tokenUsage.count,
+    used: store.token.count,
     total: TOKEN_BUDGET_PER_DAY,
-    left: Math.max(0, TOKEN_BUDGET_PER_DAY - tokenUsage.count),
+    left: Math.max(0, TOKEN_BUDGET_PER_DAY - store.token.count),
   };
 }
 
 export function consumeQuota(ip: string): { ok: true } | { ok: false; reason: string } {
   const day = today();
 
-  if (global.day !== day) global = { day, count: 0 };
-  if (global.count >= GLOBAL_PER_DAY) {
+  if (store.global.day !== day) store.global = { day, count: 0 };
+  if (store.global.count >= GLOBAL_PER_DAY) {
     return { ok: false, reason: "今日演示额度已用完，可在「模型接入」填自己的 Key 继续使用" };
   }
 
@@ -175,19 +188,19 @@ export function consumeQuota(ip: string): { ok: true } | { ok: false; reason: st
     };
   }
 
-  const bucket = perIp.get(ip);
+  const bucket = store.perIp.get(ip);
   const count = bucket && bucket.day === day ? bucket.count : 0;
   if (count >= PER_IP_PER_DAY) {
     return { ok: false, reason: "今天的演示额度已用完，可在「模型接入」填自己的 Key 继续使用" };
   }
 
-  perIp.set(ip, { day, count: count + 1 });
-  global.count += 1;
+  store.perIp.set(ip, { day, count: count + 1 });
+  store.global.count += 1;
 
   // 简单的内存回收，避免 Map 无限增长
-  if (perIp.size > 2000) {
-    for (const [key, value] of perIp) {
-      if (value.day !== day) perIp.delete(key);
+  if (store.perIp.size > 2000) {
+    for (const [key, value] of store.perIp) {
+      if (value.day !== day) store.perIp.delete(key);
     }
   }
 
