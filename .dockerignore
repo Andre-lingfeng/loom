@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+docs/screenshots
+README.md
+deploy
+*.md
+!package.json
+.env
+.env.local
+.env*.local
+npm-debug.log*
+.tmp-*

@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   // 父目录存在别的 lockfile，显式指定追踪根，避免 Next 误判工作区
   outputFileTracingRoot: process.cwd(),
+  // 容器化部署（阿里云函数计算 / ECS）时产出 standalone 产物
+  output: process.env.BUILD_STANDALONE ? "standalone" : undefined,
 };
 
 export default nextConfig;
