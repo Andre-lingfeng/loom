@@ -109,7 +109,7 @@ export function clientIp(request: Request): string {
   return request.headers.get("x-real-ip") ?? "local";
 }
 
-const TOKEN_BUDGET_PER_DAY = Number(process.env.DEMO_TOKEN_BUDGET ?? 300_000);
+const TOKEN_BUDGET_PER_DAY = Number(process.env.DEMO_TOKEN_BUDGET ?? 900_000);
 
 /** 共享 Key 当天已消耗的 token（进程内计数，重启清零） */
 
