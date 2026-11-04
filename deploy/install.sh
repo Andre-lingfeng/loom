@@ -41,7 +41,9 @@ command -v pm2 >/dev/null 2>&1 || $SUDO npm i -g pm2
 pnpm -v
 
 log "4/6 拉取代码"
-if [ -d "$APP_DIR/.git" ]; then
+if [ "${SKIP_GIT:-0}" = "1" ]; then
+  echo "跳过代码拉取（使用已上传的代码）"
+elif [ -d "$APP_DIR/.git" ]; then
   git -C "$APP_DIR" fetch --all -q
   git -C "$APP_DIR" reset --hard origin/main -q
 else
@@ -54,9 +56,11 @@ cd "$APP_DIR"
 log "5/6 写环境变量并构建"
 if [ -n "${DEEPSEEK_API_KEY:-}" ]; then
   KEY="$DEEPSEEK_API_KEY"
-else
+elif [ -t 0 ]; then
   printf '请粘贴你的 DEEPSEEK_API_KEY（直接回车可跳过，之后再补）：'
   read -r KEY
+else
+  KEY=""
 fi
 
 if [ -n "$KEY" ]; then
