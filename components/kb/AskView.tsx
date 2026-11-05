@@ -118,6 +118,11 @@ export function AskView() {
                   来自模型自身知识，没有出处。需要证据时去「缺口」看看该补什么。
                 </p>
               </div>
+            ) : answerCloud ? (
+              <p className="mt-3 text-2xs leading-relaxed text-white/25">
+                本次回答全部来自库内材料，模型没有补充库外内容。
+                <span className="text-white/20">（问库里没有的东西时，这里会出现「库外补充」）</span>
+              </p>
             ) : null}
 
             <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/[0.07] pt-3">
