@@ -163,6 +163,8 @@ export function recordTokens(tokens: number | null | undefined): void {
   const day = today();
   if (store.token.day !== day) store.token = { day, count: 0 };
   store.token.count += Math.floor(tokens);
+  // 同步到运行时指标，供 /api/metrics 读取
+  addTokens(tokens);
 }
 
 export function tokenBudgetState(): { used: number; total: number; left: number } {
