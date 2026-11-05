@@ -4,6 +4,7 @@ import { ArrowUpRight, Loader2, Plus, Search, Sparkles, TriangleAlert } from "lu
 
 import { useKb } from "@/lib/kb/store";
 
+import { ErrorNote } from "./ErrorNote";
 import { card, primary } from "./theme";
 
 const SUGGESTIONS = [
@@ -250,7 +251,12 @@ export function AskView() {
             </div>
 
             {answerError && (
-              <p className="mt-2 text-2xs text-red-300/80">云端生成失败：{answerError}</p>
+              <ErrorNote
+                className="mt-3"
+                message={`云端生成失败：${answerError}`}
+                hint="可以重试一次；如果反复失败，把复制的信息发给开发者"
+                route="POST /api/generate"
+              />
             )}
           </div>
 

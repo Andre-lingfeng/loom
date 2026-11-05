@@ -8,6 +8,7 @@ import { useKb } from "@/lib/kb/store";
 import { extractImageText } from "@/lib/kb/vision";
 import { cn } from "@/lib/utils";
 
+import { ErrorNote } from "./ErrorNote";
 import { input, primary } from "./theme";
 
 type Tab = "text" | "file" | "image" | "url";
@@ -408,7 +409,12 @@ export function AddSourceDialog({ onClose }: { onClose: () => void }) {
             />
           </div>
 
-          {error && <p className="text-2xs text-red-300">{error}</p>}
+          {error && (
+            <ErrorNote
+              message={error}
+              hint="检查上面的地址与 Key；实在不行可以先把正文粘贴进来"
+            />
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-white/[0.07] px-5 py-4">

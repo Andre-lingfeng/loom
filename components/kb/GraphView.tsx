@@ -17,6 +17,7 @@ import { loadConfig } from "@/lib/kb/llm";
 import { useKb } from "@/lib/kb/store";
 import { cn } from "@/lib/utils";
 
+import { ErrorNote } from "./ErrorNote";
 import { card } from "./theme";
 import { RelationList } from "./graph/RelationList";
 import { BLOOM, PARTICLE_FRAGMENT, PARTICLE_VERTEX, buildFibrous, makeCoreTexture, makeDotTexture, makeFlareTexture, readPalette, type Mode } from "./graph/visual";
@@ -679,7 +680,12 @@ export function GraphView() {
               <span className="text-white/25">本次 {edgeTokens} tokens</span>
             )}
             {edgeStatus === "error" && edgeError && (
-              <span className="text-red-300/80">失败：{edgeError}</span>
+              <ErrorNote
+                className="basis-full"
+                message={`关系判定失败：${edgeError}`}
+                hint="已保留本地算法结果；可以重试一次"
+                route="POST /api/relations"
+              />
             )}
           </div>
         </div>
