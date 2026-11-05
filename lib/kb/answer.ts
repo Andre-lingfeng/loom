@@ -32,11 +32,10 @@ export function answerQuery(question: string, sources: Source[]): Answer {
     return rareTokens.some((token) => haystack.includes(token));
   };
 
-  // 命中至少 2 个词，或命中一个稀有词；同时分数不低于榜首 45%
+  // 普通命中要过分数门槛；稀有词命中直接放行（专有名词的分值天然偏低）
   const strong = scored.filter(
     (item) =>
-      (item.hits >= 2 || hasRareHit(item.sourceId)) &&
-      item.score >= topScore * 0.45,
+      hasRareHit(item.sourceId) || (item.hits >= 2 && item.score >= topScore * 0.45),
   );
   const base = (strong.length > 0 ? strong : scored.slice(0, 1)).slice(0, 3);
 

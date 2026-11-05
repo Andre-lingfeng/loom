@@ -227,7 +227,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: resolved.model,
         temperature: 0.2,
-        max_tokens: 800,
+        max_tokens: 1600,
         messages,
       }),
       signal: AbortSignal.timeout(60_000),
