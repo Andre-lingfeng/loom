@@ -177,7 +177,8 @@ export async function POST(request: Request) {
   }
   // 只有「answer」允许零素材：此时全部内容都应落在库外补充里。
   // 其他任务（brief / intent / conflict）必须有素材，否则没有意义。
-  if (sources.length === 0 && task !== "brief" && task !== "answer") {
+  // 允许零素材的任务：简报（只用统计）、问答与补充建议（内容落库外）
+  if (sources.length === 0 && !["brief", "answer", "suggest"].includes(task)) {
     return NextResponse.json({ error: "没有可用的素材" }, { status: 400 });
   }
 
