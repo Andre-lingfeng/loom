@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { clientIp, consumeFetchQuota } from "@/lib/server/model";
+import { withMetrics } from "@/lib/server/metrics";
 import { assertPublicUrl, readLimitedText, safeFetch } from "@/lib/server/ssrf";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /** 链接入库：服务端抓取并抽正文。失败时前端会提示改用粘贴。 */
-export async function POST(request: Request) {
+async function handle(request: Request) {
   let url = "";
   try {
     const body = (await request.json()) as { url?: string };
@@ -100,3 +101,6 @@ export async function POST(request: Request) {
     clearTimeout(timer);
   }
 }
+
+// 自动记录耗时与状态码，供 /api/metrics 聚合
+export const POST = withMetrics("ingest", handle);

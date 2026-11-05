@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { clientIp, consumeFetchQuota } from "@/lib/server/model";
+import { withMetrics } from "@/lib/server/metrics";
 import { extractText, getDocumentProxy } from "unpdf";
 
 export const runtime = "nodejs";
@@ -15,7 +16,7 @@ const MAX_PAGES = 300;
  * PDF 文本抽取。
  * 只处理**文本型 PDF**；扫描件（图片页）抽不出文字时明确提示改用图片入库。
  */
-export async function POST(request: Request) {
+async function handle(request: Request) {
   let form: FormData;
   try {
     form = await request.formData();
@@ -99,3 +100,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// 自动记录耗时与状态码，供 /api/metrics 聚合
+export const POST = withMetrics("pdf", handle);

@@ -6,6 +6,7 @@ import {
   resolveVisionModel,
   recordTokens,
 } from "@/lib/server/model";
+import { withMetrics } from "@/lib/server/metrics";
 
 export const dynamic = "force-dynamic";
 // 云端分析可能跑 20s 以上，Vercel 默认超时不够
@@ -25,7 +26,7 @@ interface Incoming {
   model?: string;
 }
 
-export async function POST(request: Request) {
+async function handle(request: Request) {
   let payload: Incoming;
   try {
     payload = (await request.json()) as Incoming;
@@ -169,3 +170,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// 自动记录耗时与状态码，供 /api/metrics 聚合
+export const POST = withMetrics("vision", handle);

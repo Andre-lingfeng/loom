@@ -1,3 +1,5 @@
+import { addTokens } from "./metrics";
+
 /**
  * 服务端专用：模型凭证解析 + 简易限流。
  * 只在 route handler 里引用，绝不能从客户端组件 import。

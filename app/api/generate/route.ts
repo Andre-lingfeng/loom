@@ -6,6 +6,7 @@ import {
   recordTokens,
   resolveTextModel,
 } from "@/lib/server/model";
+import { withMetrics } from "@/lib/server/metrics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -148,7 +149,7 @@ function buildUserMessage(payload: Incoming): string {
   return lines.join("\n");
 }
 
-export async function POST(request: Request) {
+async function handle(request: Request) {
   let payload: Incoming;
   try {
     payload = (await request.json()) as Incoming;
@@ -398,3 +399,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// 自动记录耗时与状态码，供 /api/metrics 聚合
+export const POST = withMetrics("generate", handle);
