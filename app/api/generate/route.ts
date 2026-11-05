@@ -290,8 +290,48 @@ export async function POST(request: Request) {
     }
 
     if (task === "suggest") {
-      const parsed = parseJson(text);
-      const list = Array.isArray(parsed?.sources) ? parsed.sources : [];
+      let enriched = text; // 允许下面重试替换
+
+      const parseList = (value: string) => {
+        const parsed = parseJson(value);
+        return Array.isArray(parsed?.sources) ? parsed.sources : [];
+      };
+
+      let list = parseList(enriched);
+
+      // 模型偶尔会写成散文，追问一次只要 JSON
+      if (list.length === 0) {
+        const retry = await fetch(`${resolved.baseUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${resolved.apiKey}`,
+          },
+          body: JSON.stringify({
+            model: resolved.model,
+            temperature: 0.2,
+            max_tokens: 1600,
+            messages: [
+              ...messages,
+              { role: "assistant", content: enriched.slice(0, 400) },
+              {
+                role: "user",
+                content: "只输出 JSON 对象，形如 {\"sources\":[{\"title\":\"...\",\"url\":\"https://...\",\"reason\":\"...\"}]}，不要任何解释。",
+              },
+            ],
+          }),
+          signal: AbortSignal.timeout(60_000),
+        });
+
+        if (retry.ok) {
+          const retryData = (await retry.json()) as {
+            choices?: { message?: { content?: string; reasoning_content?: string } }[];
+          };
+          const retryMessage = retryData.choices?.[0]?.message;
+          enriched = (retryMessage?.content?.trim() || retryMessage?.reasoning_content?.trim() || "").trim();
+          list = parseList(enriched);
+        }
+      }
 
       const candidates = list
         .map((item) => {
