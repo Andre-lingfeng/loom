@@ -155,6 +155,9 @@ pnpm verify
 | `pnpm demo` | 构建后启动演示实例 |
 | `pnpm verify` | 设计规则 + 类型 + 单元测试 |
 | `pnpm test:e2e` | 浏览器冒烟测试（需先启动服务） |
+| `pnpm eval:relations` | 关系判定质量评测（20 条素材） |
+| `pnpm eval:qa` | 问答质量抽测 |
+| `pnpm eval:perf` | 首屏性能测量（4G + 降速） |
 | `pnpm verify:full` | 以上全部 |
 
 ---

@@ -15,7 +15,10 @@
     "postinstall": "node scripts/copy-pdf-worker.mjs",
     "prebuild": "node scripts/copy-pdf-worker.mjs",
     "test:e2e": "node tests/e2e.mjs",
-    "verify:full": "pnpm verify && pnpm test:e2e"
+    "verify:full": "pnpm verify && pnpm test:e2e",
+    "eval:relations": "node evals/relations.mjs",
+    "eval:qa": "node evals/qa.mjs",
+    "eval:perf": "node evals/perf.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
