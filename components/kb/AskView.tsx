@@ -199,7 +199,7 @@ export function AskView() {
       {(answerCloud?.extra || (answer && answer.empty)) && (
         <div className={`${card} mt-3 p-4`}>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-2xs text-white/45">这块证据库里没有，要补吗？</span>
+            <span className="text-2xs text-white/55">这块证据库里没有，要补吗？</span>
             <button
               onClick={() => void findMissingSources()}
               disabled={suggestStatus === "loading"}
@@ -255,8 +255,8 @@ export function AskView() {
           {suggestError && <p className="mt-2 text-2xs text-red-300/80">{suggestError}</p>}
 
           {suggestions.length === 0 && suggestStatus === "idle" && !suggestError && (
-            <p className="mt-2 text-2xs text-white/20">
-              模型只会给出真实存在的公开材料；加不加由你决定，抓不到正文的会明确提示。
+            <p className="mt-2 text-2xs leading-relaxed text-white/40">
+              模型只会推荐真实存在的公开材料；加不加由你决定，抓不到正文的会明确提示。
             </p>
           )}
         </div>
