@@ -12,6 +12,77 @@ const SUGGESTIONS = [
   "知识管理为什么要强调输出",
 ];
 
+/** 补材料区块：推荐真实材料，用户决定是否入库 */
+function SuggestBlock() {
+  const suggestions = useKb((s) => s.suggestions);
+  const suggestStatus = useKb((s) => s.suggestStatus);
+  const suggestError = useKb((s) => s.suggestError);
+  const suggestAdding = useKb((s) => s.suggestAdding);
+  const findMissingSources = useKb((s) => s.findMissingSources);
+  const addSuggested = useKb((s) => s.addSuggested);
+
+  return (
+    <div className="mt-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-2xs text-white/55">这块证据库里没有，要补吗？</span>
+        <button
+          onClick={() => void findMissingSources()}
+          disabled={suggestStatus === "loading"}
+          className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1 text-2xs text-white/50 transition-colors hover:border-white/25 hover:text-white disabled:opacity-50"
+        >
+          {suggestStatus === "loading" ? (
+            <Loader2 size={11} className="animate-spin" />
+          ) : (
+            <Sparkles size={11} />
+          )}
+          {suggestStatus === "loading" ? "正在找…" : "让模型找几篇能补上的材料"}
+        </button>
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {suggestions.map((item, index) => (
+            <div key={`${item.title}-${index}`} className="rounded-xl bg-white/[0.04] p-3">
+              <div className="text-xs font-medium text-white/80">{item.title}</div>
+              {item.reason && <div className="mt-0.5 text-2xs text-white/35">{item.reason}</div>}
+              {item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 block truncate text-2xs text-violet-300/70 hover:text-violet-200"
+                >
+                  {item.url}
+                </a>
+              )}
+              <button
+                onClick={() => void addSuggested(index)}
+                disabled={suggestAdding === index}
+                className="mt-2 flex items-center gap-1.5 rounded-lg bg-white/[0.08] px-2.5 py-1 text-2xs text-white/65 transition-colors hover:bg-white/[0.14] hover:text-white disabled:opacity-50"
+              >
+                {suggestAdding === index ? (
+                  <Loader2 size={11} className="animate-spin" />
+                ) : (
+                  <Plus size={11} />
+                )}
+                {suggestAdding === index ? "抓取中…" : "抓取正文并加入知识库"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {suggestError && <p className="mt-2 text-2xs text-red-300/80">{suggestError}</p>}
+
+      {suggestions.length === 0 && suggestStatus === "idle" && !suggestError && (
+        <p className="mt-2 text-2xs leading-relaxed text-white/40">
+          模型只会推荐真实存在的公开材料；加不加由你决定，抓不到正文的会明确提示。
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function AskView() {
   const question = useKb((s) => s.question);
   const setQuestion = useKb((s) => s.setQuestion);
@@ -141,7 +212,11 @@ export function AskView() {
                   来自模型自身知识，没有出处。需要证据时去「缺口」看看该补什么。
                 </p>
               </div>
-            ) : answerCloud ? (
+            ) : null}
+
+            {answerCloud?.extra ? <SuggestBlock /> : null}
+
+            {answerCloud && !answerCloud.extra ? (
               <p className="mt-3 text-2xs leading-relaxed text-white/25">
                 本次回答全部来自库内材料，模型没有补充库外内容。
                 <span className="text-white/20">（问库里没有的东西时，这里会出现「库外补充」）</span>
@@ -196,71 +271,7 @@ export function AskView() {
         </div>
       )}
 
-      {(answerCloud?.extra || (answer && answer.empty)) && (
-        <div className={`${card} mt-3 p-4`}>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-2xs text-white/55">这块证据库里没有，要补吗？</span>
-            <button
-              onClick={() => void findMissingSources()}
-              disabled={suggestStatus === "loading"}
-              className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1 text-2xs text-white/50 transition-colors hover:border-white/25 hover:text-white disabled:opacity-50"
-            >
-              {suggestStatus === "loading" ? (
-                <Loader2 size={11} className="animate-spin" />
-              ) : (
-                <Sparkles size={11} />
-              )}
-              {suggestStatus === "loading" ? "正在找…" : "让模型找几篇能补上的材料"}
-            </button>
-          </div>
-
-          {suggestions.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {suggestions.map((item, index) => (
-                <div
-                  key={`${item.title}-${index}`}
-                  className="rounded-xl bg-white/[0.04] p-3"
-                >
-                  <div className="text-xs font-medium text-white/80">{item.title}</div>
-                  {item.reason && (
-                    <div className="mt-0.5 text-2xs text-white/35">{item.reason}</div>
-                  )}
-                  {item.url && (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-1 block truncate text-2xs text-violet-300/70 hover:text-violet-200"
-                    >
-                      {item.url}
-                    </a>
-                  )}
-                  <button
-                    onClick={() => void addSuggested(index)}
-                    disabled={suggestAdding === index}
-                    className="mt-2 flex items-center gap-1.5 rounded-lg bg-white/[0.08] px-2.5 py-1 text-2xs text-white/65 transition-colors hover:bg-white/[0.14] hover:text-white disabled:opacity-50"
-                  >
-                    {suggestAdding === index ? (
-                      <Loader2 size={11} className="animate-spin" />
-                    ) : (
-                      <Plus size={11} />
-                    )}
-                    {suggestAdding === index ? "抓取中…" : "抓取正文并加入知识库"}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {suggestError && <p className="mt-2 text-2xs text-red-300/80">{suggestError}</p>}
-
-          {suggestions.length === 0 && suggestStatus === "idle" && !suggestError && (
-            <p className="mt-2 text-2xs leading-relaxed text-white/40">
-              模型只会推荐真实存在的公开材料；加不加由你决定，抓不到正文的会明确提示。
-            </p>
-          )}
-        </div>
-      )}
+      {!answerCloud?.extra && answer && answer.empty ? <SuggestBlock /> : null}
     </div>
   );
 }
