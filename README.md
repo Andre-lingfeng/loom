@@ -144,6 +144,7 @@ pnpm verify
 | [ENGINEERING-STANDARDS.md](docs/ENGINEERING-STANDARDS.md) | 八维审计快照与待办 |
 | [REFERENCES.md](docs/REFERENCES.md) | 可借鉴的开源项目与合规红线 |
 | [DEPLOY.md](docs/DEPLOY.md) | 部署步骤、环境变量、上线回归清单 |
+| [TECH-REPORT.md](docs/TECH-REPORT.md) | 技术报告（问题、取舍、架构、实现、评测） |
 | [DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) | 5 分钟演示稿 + 可能被问到的问题 |
 
 ### 常用命令
