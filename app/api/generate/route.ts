@@ -257,14 +257,16 @@ export async function POST(request: Request) {
     }
 
     const data = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
+      choices?: { finish_reason?: string; message?: { content?: string; reasoning_content?: string } }[];
       usage?: { total_tokens?: number };
     };
 
     // 共享 Key 的消耗计入每日 token 预算
     if (resolved.shared) recordTokens(data.usage?.total_tokens ?? null);
 
-    const text = data.choices?.[0]?.message?.content?.trim() ?? "";
+    // 有些模型（推理型）会把内容写进 reasoning_content，正文为空；此时兜底取它
+    const message = data.choices?.[0]?.message;
+    const text = (message?.content?.trim() || message?.reasoning_content?.trim() || "").trim();
     if (text.length < 8) {
       return NextResponse.json({ error: "模型没有返回内容，请重试" }, { status: 502 });
     }
