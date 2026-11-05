@@ -158,6 +158,7 @@ pnpm verify
 | `pnpm eval:relations` | 关系判定质量评测（20 条素材） |
 | `pnpm eval:qa` | 问答质量抽测 |
 | `pnpm eval:perf` | 首屏性能测量（4G + 降速） |
+| `pnpm build:pdf` | 把技术报告渲染成 PDF |
 | `pnpm verify:full` | 以上全部 |
 
 ---

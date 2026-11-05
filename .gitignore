@@ -19,3 +19,6 @@ loom-backup-*.json
 
 # 临时补丁脚本
 .tmp-*
+
+# PDF 构建中间产物
+docs/report/report.html
