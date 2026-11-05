@@ -250,14 +250,7 @@ export function AskView() {
               </button>
             </div>
 
-            {answerError && (
-              <ErrorNote
-                className="mt-3"
-                message={`云端生成失败：${answerError}`}
-                hint="可以重试一次；如果反复失败，把复制的信息发给开发者"
-                route="POST /api/generate"
-              />
-            )}
+
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
@@ -275,6 +268,15 @@ export function AskView() {
             ))}
           </div>
         </div>
+      )}
+
+      {answerError && (
+        <ErrorNote
+          className="mt-3"
+          message={`云端生成失败：${answerError}`}
+          hint="可以重试一次；如果反复失败，把复制的信息发给开发者"
+          route="POST /api/generate"
+        />
       )}
 
       {!answerCloud?.extra && answer && answer.empty ? <SuggestBlock /> : null}
