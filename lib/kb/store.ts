@@ -6,6 +6,7 @@ import { answerQuery } from "./answer";
 import { generateAnswer, generateBrief, splitAnswer } from "./generate";
 import { buildGraph, type GraphEdge } from "./graph";
 import { isConfigured, loadConfig } from "./llm";
+import { suggestSources, type SuggestedSource } from "./suggest";
 import { requestRelations } from "./relations";
 import { seedSources } from "./seed";
 import { estimateTags, summarize } from "./text";
@@ -141,6 +142,12 @@ interface KbStore {
 
   /** 云端生成的问答回答 */
   answerCloud: { text: string; extra: string; tokens: number | null } | null;
+  /** 模型推荐的可补充材料（用户决定是否入库） */
+  suggestions: SuggestedSource[];
+  suggestStatus: "idle" | "loading" | "error";
+  suggestError: string | null;
+  /** 正在抓取入库的建议下标 */
+  suggestAdding: number | null;
   answerStatus: "idle" | "loading" | "error";
   answerError: string | null;
 
@@ -160,6 +167,8 @@ interface KbStore {
   resolveConflict: (id: string, resolution: ConflictResolution, note: string) => void;
   generateBriefSummary: () => Promise<void>;
   generateCloudAnswer: () => Promise<void>;
+  findMissingSources: () => Promise<void>;
+  addSuggested: (index: number) => Promise<void>;
   setAutoRecompute: (value: boolean) => void;
   setShowReset: (value: boolean) => void;
   loadServerCloud: () => Promise<void>;
@@ -188,6 +197,10 @@ export const useKb = create<KbStore>()((set, get) => ({
   briefStatus: "idle",
   briefError: null,
   answerCloud: null,
+  suggestions: [],
+  suggestStatus: "idle",
+  suggestError: null,
+  suggestAdding: null,
   answerStatus: "idle",
   answerError: null,
 
@@ -398,6 +411,79 @@ export const useKb = create<KbStore>()((set, get) => ({
         edgeStatus: "error",
         edgeError: error instanceof Error ? error.message : "云端分析失败",
       });
+    }
+  },
+
+  findMissingSources: async () => {
+    const { question } = get();
+    if (!question.trim()) return;
+
+    set({ suggestStatus: "loading", suggestError: null, suggestions: [] });
+    try {
+      const result = await suggestSources(question);
+      set({
+        suggestions: result.suggestions,
+        suggestStatus: "idle",
+        suggestError: null,
+      });
+    } catch (error) {
+      set({
+        suggestStatus: "error",
+        suggestError: error instanceof Error ? error.message : "没能给出建议",
+      });
+    }
+  },
+
+  addSuggested: async (index) => {
+    const candidate = get().suggestions[index];
+    if (!candidate) return;
+
+    set({ suggestAdding: index, suggestError: null });
+    try {
+      let text = "";
+      let finalTitle = candidate.title;
+
+      // 有链接就抓正文；抓不到就让用户自己粘贴，不假装成功
+      if (candidate.url) {
+        const res = await fetch("/api/ingest", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url: candidate.url }),
+        });
+        const data = (await res.json()) as { title?: string; text?: string; error?: string };
+
+        if (!res.ok || !data.text) {
+          set({
+            suggestAdding: null,
+            suggestError: data.error ?? "这个链接抓不到正文，可以换成搜索后粘贴",
+          });
+          return;
+        }
+        text = data.text;
+        finalTitle = data.title || candidate.title;
+      } else {
+        set({
+          suggestAdding: null,
+          suggestError: "这条建议没有可抓取的链接，搜索标题后手动粘贴更可靠",
+        });
+        return;
+      }
+
+      get().addSource({
+        kind: "url",
+        title: finalTitle,
+        text,
+        url: candidate.url,
+        intent: candidate.reason || `为回答「${get().question}」补充的证据`,
+      });
+
+      // 已入库的从列表移除，避免重复添加
+      set((state) => ({
+        suggestions: state.suggestions.filter((_, i) => i !== index),
+        suggestAdding: null,
+      }));
+    } catch {
+      set({ suggestAdding: null, suggestError: "入库失败，检查网络后重试" });
     }
   },
 

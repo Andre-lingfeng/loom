@@ -15,7 +15,7 @@ const MAX_SOURCES = 8;
 const MAX_CHARS = 900;
 
 interface Incoming {
-  task?: "brief" | "answer" | "intent" | "conflict" | "discuss" | "reflect";
+  task?: "brief" | "answer" | "intent" | "conflict" | "discuss" | "reflect" | "suggest";
   question?: string;
   /** 额外约束，例如两条素材之间存在已确认分歧 */
   notes?: string[];
@@ -45,6 +45,16 @@ const ANSWER_PROMPT = `你是个人知识库的问答助手。回答必须分成
 3. 用中文，整体 3–8 句话，不要客套话，不要重复问题。
 4. 严格按「库中依据」「库外补充」两个标记输出，不要加别的标题。`;
 
+const SUGGEST_PROMPT = `用户的知识库里没有能回答这个问题的材料。请推荐 3 篇确实存在、值得收藏的材料，帮他补上这块证据。
+
+规则：
+1. 只推荐你有把握真实存在的公开材料：论文（arxiv / 期刊）、官方文档、机构报告。
+2. url 必须是你能确认的稳定地址；不确定就留空字符串，不要编造编号或路径。
+3. title 写材料的正式标题（不超过 40 字），不要写"某某文章"。
+4. reason 用一句话说清它补的是哪个缺口（不超过 30 字）。
+5. 只输出 JSON，不要代码块、不要解释：
+{"sources":[{"title":"...","url":"https://...","reason":"..."}]}`;
+
 const BRIEF_PROMPT = `你是个人知识库的日报编辑。根据下面给出的统计与素材标题，写一段 3–5 句的中文总结。
 
 规则：
@@ -70,6 +80,7 @@ function parseJson(raw: string): {
   substance?: string;
   difference?: string;
   question?: string;
+  sources?: unknown;
 } | null {
   const cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
   const start = cleaned.indexOf("{");
@@ -156,7 +167,9 @@ export async function POST(request: Request) {
             ? "discuss"
             : payload.task === "reflect"
               ? "reflect"
-              : "brief";
+              : payload.task === "suggest"
+                ? "suggest"
+                : "brief";
   const sources = (payload.sources ?? []).slice(0, MAX_SOURCES);
 
   if (task === "answer" && !payload.question?.trim()) {
@@ -206,8 +219,10 @@ export async function POST(request: Request) {
           {
             role: "system",
             content:
-              task === "answer"
-                ? ANSWER_PROMPT
+              task === "suggest"
+                ? SUGGEST_PROMPT
+                : task === "answer"
+                  ? ANSWER_PROMPT
                 : task === "intent"
                   ? INTENT_PROMPT
                   : task === "conflict"
@@ -266,6 +281,35 @@ export async function POST(request: Request) {
         substance: substance.slice(0, 120),
         difference: (parsed?.difference ?? "").trim().slice(0, 20),
         question: (parsed?.question ?? "").trim().slice(0, 60),
+        tokens: data.usage?.total_tokens ?? null,
+        model: resolved.model,
+      });
+    }
+
+    if (task === "suggest") {
+      const parsed = parseJson(text);
+      const list = Array.isArray(parsed?.sources) ? parsed.sources : [];
+
+      const candidates = list
+        .map((item) => {
+          const row = item as Record<string, unknown>;
+          const title = typeof row.title === "string" ? row.title.trim() : "";
+          const url = typeof row.url === "string" ? row.url.trim() : "";
+          const reason = typeof row.reason === "string" ? row.reason.trim() : "";
+          return { title, url, reason };
+        })
+        .filter((item) => item.title.length > 0)
+        .slice(0, 4);
+
+      if (candidates.length === 0) {
+        return NextResponse.json(
+          { error: "模型没有给出可用的材料建议，稍后重试" },
+          { status: 502 },
+        );
+      }
+
+      return NextResponse.json({
+        suggestions: candidates,
         tokens: data.usage?.total_tokens ?? null,
         model: resolved.model,
       });
