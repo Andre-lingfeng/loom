@@ -174,7 +174,29 @@ export function AskView() {
               </button>
             </div>
 
-            {(answerCloud?.extra || (answer && answer.empty)) && (
+            {answerError && (
+              <p className="mt-2 text-2xs text-red-300/80">云端生成失败：{answerError}</p>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-2xs text-white/25">出处</span>
+            {(answer?.citations ?? []).map((citation) => (
+              <button
+                key={citation.index}
+                onClick={() => select(citation.sourceId)}
+                className="flex max-w-full items-center gap-1 rounded-lg bg-white/[0.06] px-2 py-1 text-2xs text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <span className="shrink-0 text-violet-300">[{citation.index}]</span>
+                <span className="max-w-[220px] truncate">{citation.title}</span>
+                <ArrowUpRight size={11} className="shrink-0 opacity-50" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(answerCloud?.extra || (answer && answer.empty)) && (
         <div className={`${card} mt-3 p-4`}>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-2xs text-white/45">这块证据库里没有，要补吗？</span>
@@ -237,28 +259,6 @@ export function AskView() {
               模型只会给出真实存在的公开材料；加不加由你决定，抓不到正文的会明确提示。
             </p>
           )}
-        </div>
-      )}
-
-      {answerError && (
-              <p className="mt-2 text-2xs text-red-300/80">云端生成失败：{answerError}</p>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-2xs text-white/25">出处</span>
-            {(answer?.citations ?? []).map((citation) => (
-              <button
-                key={citation.index}
-                onClick={() => select(citation.sourceId)}
-                className="flex max-w-full items-center gap-1 rounded-lg bg-white/[0.06] px-2 py-1 text-2xs text-white/50 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                <span className="shrink-0 text-violet-300">[{citation.index}]</span>
-                <span className="max-w-[220px] truncate">{citation.title}</span>
-                <ArrowUpRight size={11} className="shrink-0 opacity-50" />
-              </button>
-            ))}
-          </div>
         </div>
       )}
     </div>
