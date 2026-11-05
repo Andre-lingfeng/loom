@@ -419,14 +419,13 @@ export const useKb = create<KbStore>()((set, get) => ({
 
   generateCloudAnswer: async () => {
     const { answer, sources } = get();
-    if (!answer || answer.empty) return;
+    if (!answer) return;
 
     const picked = answer.citations
       .map((citation) => sources.find((source) => source.id === citation.sourceId))
       .filter((source): source is Source => Boolean(source));
 
-    // 检索完全没命中时仍然可以问：此时全部内容都会落在「库外补充」里
-    if (picked.length === 0 && !answer.empty) return;
+    // 检索没命中（answer.empty）也允许问：内容会全部落在「库外补充」里
 
     set({ answerStatus: "loading", answerError: null });
     try {
