@@ -12,11 +12,31 @@ export function answerQuery(question: string, sources: Source[]): Answer {
   const usable = sources.filter((source) => !source.supersededBy && !source.absorbedBy);
   const pool = usable.length > 0 ? usable : sources;
 
-  // 只保留「命中至少 2 个词、且分数不低于榜首 45%」的素材，避免把弱相关也标成出处
+  // 稀有词：只在 1–2 条素材里出现的词，通常是专有名词（METR、Copilot）。
+  // 它们往往只命中一次，却是提问的核心，不能因为「命中数不足 2」被整条丢掉。
+  const tokens = tokenize(question);
+  const rareTokens = tokens.filter((token) => {
+    const owners = pool.filter((source) =>
+      `${source.title} ${source.text}`.toLowerCase().includes(token),
+    ).length;
+    return owners > 0 && owners <= 2;
+  });
+
   const scored = rank(question, pool);
   const topScore = scored[0]?.score ?? 0;
+
+  const hasRareHit = (sourceId: string) => {
+    const source = pool.find((entry) => entry.id === sourceId);
+    if (!source) return false;
+    const haystack = `${source.title} ${source.text}`.toLowerCase();
+    return rareTokens.some((token) => haystack.includes(token));
+  };
+
+  // 命中至少 2 个词，或命中一个稀有词；同时分数不低于榜首 45%
   const strong = scored.filter(
-    (item) => item.hits >= 2 && item.score >= topScore * 0.45,
+    (item) =>
+      (item.hits >= 2 || hasRareHit(item.sourceId)) &&
+      item.score >= topScore * 0.45,
   );
   const base = (strong.length > 0 ? strong : scored.slice(0, 1)).slice(0, 3);
 
@@ -37,7 +57,6 @@ export function answerQuery(question: string, sources: Source[]): Answer {
     return { text: "", citations: [], empty: true };
   }
 
-  const tokens = tokenize(question);
   const citations: Citation[] = [];
 
   // 已确认并存的素材：若同时被引用，回答必须先声明分歧，不能缝成一个结论
