@@ -84,10 +84,25 @@ export function AskView() {
           <p className="mt-1 text-2xs text-white/25">
             这不是坏消息——去「缺口」看看该补哪一块，比硬编一个答案好。
           </p>
+          <button
+            onClick={() => void generateCloudAnswer()}
+            disabled={answerStatus === "loading"}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-amber-400/25 bg-amber-400/[0.08] px-3 py-1.5 text-2xs font-medium text-amber-200 transition-colors hover:border-amber-300/45 hover:bg-amber-400/[0.16] disabled:opacity-50"
+          >
+            {answerStatus === "loading" ? (
+              <Loader2 size={11} className="animate-spin" />
+            ) : (
+              <Sparkles size={11} />
+            )}
+            {answerStatus === "loading" ? "生成中…" : "让模型补充背景"}
+          </button>
+          <p className="mt-1.5 text-2xs text-white/20">
+            库里的材料答不了，但模型可能知道——补充内容会被单独标出来
+          </p>
         </div>
       )}
 
-      {answer && !answer.empty && (
+      {(answerCloud || (answer && !answer.empty)) && (
         <div className="mt-5 space-y-3">
           <div className={`${card} p-5`}>
             {answerCloud && (
@@ -102,7 +117,9 @@ export function AskView() {
             )}
 
             <div className="text-sm leading-relaxed whitespace-pre-wrap text-white/85">
-              {answerCloud ? answerCloud.text || "库里没有能直接支撑这个问题的材料。" : answer.text}
+              {answerCloud
+                ? answerCloud.text || "库里没有能直接支撑这个问题的材料。"
+                : (answer?.text ?? "")}
             </div>
 
             {answerCloud?.extra ? (
@@ -158,7 +175,7 @@ export function AskView() {
 
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="mr-1 text-2xs text-white/25">出处</span>
-            {answer.citations.map((citation) => (
+            {(answer?.citations ?? []).map((citation) => (
               <button
                 key={citation.index}
                 onClick={() => select(citation.sourceId)}
