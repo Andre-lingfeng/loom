@@ -162,10 +162,9 @@ export async function POST(request: Request) {
   if (task === "answer" && !payload.question?.trim()) {
     return NextResponse.json({ error: "缺少问题" }, { status: 400 });
   }
-  if (task !== "brief" && sources.length === 0) {
-    return NextResponse.json({ error: "没有可用的素材" }, { status: 400 });
-  }
-  if (sources.length === 0) {
+  // 只有「answer」允许零素材：此时全部内容都应落在库外补充里。
+  // 其他任务（brief / intent / conflict）必须有素材，否则没有意义。
+  if (sources.length === 0 && task !== "brief" && task !== "answer") {
     return NextResponse.json({ error: "没有可用的素材" }, { status: 400 });
   }
 
