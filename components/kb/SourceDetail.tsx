@@ -378,7 +378,7 @@ export function SourceDetail() {
     </div>
   );
 
-  if (mounted && expanded) {
+  if (mounted && (expanded || narrow)) {
     // 必须挂回 .aurora-root：--kb-* 变量定义在那里，挂到 body 会失去主题
     const host = document.querySelector(".aurora-root") ?? document.body;
     return createPortal(
@@ -392,8 +392,9 @@ export function SourceDetail() {
     <div
       style={{ width: narrow ? "100%" : width }}
       className={cn(
-        "fixed z-40 flex flex-col border-l border-white/[0.06] bg-[var(--kb-panel)] shadow-2xl shadow-black/60",
-        narrow ? "inset-0" : "top-16 right-0 bottom-0",
+        "flex flex-col border-l border-white/[0.06] bg-[var(--kb-panel)] shadow-2xl shadow-black/60",
+        expanded || narrow ? "h-full w-full" : "fixed top-16 right-0 bottom-0 z-40",
+        narrow && "pt-[env(safe-area-inset-top)]",
       )}
     >
       <div
