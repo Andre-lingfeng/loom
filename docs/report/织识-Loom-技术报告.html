@@ -546,6 +546,30 @@ fetch /api/*  ──→ 服务端校验（SSRF / 限流 / token 预算）
 }
 </code></pre>
 <p>设置 <code>METRICS_TOKEN</code> 后需要口令才能读；不设置则返回聚合数字。两种模式都不含用户内容。</p>
+<p>除了 JSON，还有一个可视化页面 <code>/kb/metrics</code>（从「模型接入」页进入）：</p>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/16-metrics.png" alt="图 8c　运行指标页：成功率、各接口 P50/P95、错误分布"></p>
+<p align="center"><sub>图 8c　运行指标页：成功率、各接口 P50/P95、错误分布</sub></p><p>页面把三件事放在一屏里：</p>
+<table>
+<thead>
+<tr>
+<th>区块</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>四个数字</td>
+<td>服务还活着吗？成功率有没有掉？</td>
+</tr>
+<tr>
+<td>按接口的 P50/P95</td>
+<td>慢在哪个接口？（<code>relations</code> 12 秒，<code>ingest</code> 不到 1 秒）</td>
+</tr>
+<tr>
+<td>错误分布</td>
+<td>坏在哪一层？鉴权、额度、上游，还是请求本身不合法</td>
+</tr>
+</tbody></table>
+<p>条形长度按 P95 计，满格 20 秒，超过 10 秒标黄——一眼能看出哪个接口有性能风险。</p>
 <h4>错误可诊断，而不是「请联系管理员」</h4>
 <p>最初的建议是「报错就弹联系管理员」。这里没有采纳，原因不是不想做容错，而是
 <strong>这个产品没有管理员</strong>——数据在用户浏览器里，没有账号体系，也没有人会接那个电话。
