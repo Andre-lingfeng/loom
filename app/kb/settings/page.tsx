@@ -2,7 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Eye, EyeOff, Loader2, ShieldCheck, Trash2, Zap } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  Check,
+  Eye,
+  EyeOff,
+  Loader2,
+  ShieldCheck,
+  Trash2,
+  Zap,
+} from "lucide-react";
 
 import { useKb } from "@/lib/kb/store";
 
