@@ -38,13 +38,6 @@ export const PROVIDERS: {
     note: "国内直连，有免费额度；视觉用 glm-4v-flash",
   },
   {
-    key: "wuying",
-    label: "无影网关",
-    baseUrl: "http://127.0.0.1:19901/v1",
-    model: "deepseek-v4-flash",
-    note: "本地网关：需先启动「无影 AI 模型网关」，端口 19901",
-  },
-  {
     key: "dashscope",
     label: "通义千问",
     baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",

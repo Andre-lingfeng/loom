@@ -141,7 +141,7 @@ export async function POST(request: Request) {
       name === "TimeoutError"
         ? "连接超时：地址可能被墙或不响应。国内访问 OpenAI 需要代理；DeepSeek / 智谱 / 通义可直连"
         : isLocal
-          ? "连不上这个本地地址：对应的服务没启动。无影网关需要先打开「无影 AI 模型网关」，确认 19901 端口在监听"
+          ? "连不上这个本地地址：对应的服务可能没启动，确认端口是否在监听"
           : "连不上这个地址：检查 Base URL 拼写，以及本机网络能不能访问它";
     return NextResponse.json({ ok: false, latencyMs, error: message });
   }
