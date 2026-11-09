@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>织识 Loom · 技术报告</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 10.5pt; line-height: 1.75; color: #1a1a1f;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  h1 { font-size: 20pt; margin: 0 0 6pt; letter-spacing: -.01em; }
+  h2 { font-size: 14pt; margin: 22pt 0 8pt; padding-top: 8pt; border-top: 1.5pt solid #6d28d9; color: #2b2b33; break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 14pt 0 5pt; color: #3b3b45; break-after: avoid; }
+  p { margin: 0 0 7pt; }
+  ul, ol { margin: 0 0 8pt; padding-left: 16pt; }
+  li { margin-bottom: 3pt; }
+  blockquote { margin: 8pt 0; padding: 7pt 10pt; background: #f6f4ff; border-left: 3pt solid #8b5cf6; border-radius: 3pt; color: #3c3c48; }
+  blockquote p { margin: 0; }
+  code { font-family: "Cascadia Mono", Consolas, monospace; font-size: 9pt; background: #f1f0f6; padding: 1pt 4pt; border-radius: 3pt; color: #5b21b6; }
+  pre { background: #f7f6fb; border: .5pt solid #e2e0ea; border-radius: 5pt; padding: 8pt 10pt; margin: 8pt 0; overflow: hidden; break-inside: avoid; }
+  pre code { background: none; padding: 0; color: #26262e; font-size: 8.8pt; line-height: 1.6; }
+  table { width: 100%; border-collapse: collapse; margin: 8pt 0 10pt; font-size: 9.5pt; break-inside: avoid; }
+  th, td { border: .5pt solid #d8d6e2; padding: 4pt 7pt; text-align: left; vertical-align: top; }
+  th { background: #f4f2fb; font-weight: 600; }
+  th:nth-child(2), td:nth-child(2) { min-width: 42pt; }
+  hr { border: none; border-top: .5pt solid #dddbe6; margin: 16pt 0; }
+  img { display: block; width: 100%; max-width: 100%; margin: 10pt 0 4pt; border-radius: 4pt; border: .5pt solid #e6e4ef; break-inside: avoid; }
+  p:has(> sub) { margin: 0 0 12pt; }
+  sub { font-size: 8.5pt; color: #6b6b78; }
+  a { color: #6d28d9; text-decoration: none; word-break: break-all; }
+  .cover { text-align: left; padding-top: 60mm; break-after: page; }
+  .cover .kicker { font-size: 9pt; letter-spacing: .18em; color: #8b5cf6; text-transform: uppercase; }
+  .cover h1 { font-size: 30pt; margin: 8pt 0 10pt; }
+  .cover .lead { font-size: 12pt; color: #4a4a55; line-height: 1.8; }
+  .cover .meta { margin-top: 30mm; font-size: 9.5pt; color: #6b6b78; line-height: 2; }
+  .pagebreak { break-after: page; }
+</style>
+</head><body>
+
+  <div class="cover">
+    <div class="kicker">传智杯 AI Web 开发挑战赛</div>
+    <h1>织识 Loom</h1>
+    <div class="lead">个人知识库助手<br>AI 负责让你看清，不负责替你想清楚</div>
+    <div class="meta">
+      作品类型：Web 应用（Next.js 全栈）<br>
+      线上演示：http://8.163.104.134<br>
+      代码仓库：https://github.com/Andre-lingfeng/loom<br>
+      提交日期：2025 年 11 月
+    </div>
+  </div>
+  <div class="pagebreak"></div>
+
+<h2>1. 问题</h2>
+<h3>1.1 起点：一个自己的习惯</h3>
+<p>这个作品不是从「想做个 AI 应用」开始的。</p>
+<blockquote>
+<p>在短视频软件里，我收藏了很多自己认为有用的视频。但这些视频进了收藏夹之后就再没打开过，有些甚至没完整看完。后来我开始留意到这种情况，会不定期打开「我的收藏」，但收效甚微。</p>
+</blockquote>
+<p>这里的失败不在「找不到」，而在<strong>收藏这个动作本身提供了「我已经获得了」的错觉</strong>。收藏越方便，这种错觉越强。</p>
+<p>复述一遍行为链：看到 → 觉得有用 → 收藏 → <strong>获得心理上的完成感</strong> → 不再打开。问题出在第四步——收藏替代了学习，而不是通往学习。</p>
+<p>竞赛只是这个作品的引线。困扰在这之前就有了，作品是顺着它长出来的。</p>
+<h3>1.2 现象抽象</h3>
+<p>知识管理工具解决的是「存」，但存完之后的学习过程没人管。</p>
+<p>三个可观察的失败模式：</p>
+<table>
+<thead>
+<tr>
+<th>失败模式</th>
+<th>表现</th>
+<th>现有工具的对策</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>存了不看</strong></td>
+<td>收藏夹里 300 条，一条没重读过</td>
+<td>无（甚至用「一键剪藏」加速囤积）</td>
+</tr>
+<tr>
+<td><strong>看了不写</strong></td>
+<td>读完觉得懂了，合上就忘</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>写了不判断</strong></td>
+<td>素材之间互相矛盾，笔记却拼成一段自洽的结论</td>
+<td>无</td>
+</tr>
+</tbody></table>
+<p>第三条最危险：模型会把两条冲突的材料缝合成一段流畅但错误的总结，而用户不会察觉。</p>
+<h3>1.3 主张</h3>
+<blockquote>
+<p><strong>AI 负责让你看清，不负责替你想清楚。</strong></p>
+</blockquote>
+<p>产品把「输出」变成流程的一部分，而不是可选动作：</p>
+<ul>
+<li>存素材必须写一句「为什么存它」，否则进收件箱挂着</li>
+<li>写作前先查缺口，指出哪些论点没有证据</li>
+<li>素材之间矛盾时，模型标出来，但<strong>必须由用户做出判断</strong>才能收口</li>
+</ul>
+<h3>1.4 目标用户</h3>
+<p>自己写东西的人：学生、研究者、写作者、产品经理。共同点是「需要把读到的材料变成自己的判断」。</p>
+<p>反过来，不用写东西、只是收集资料的人不需要这个工具——他们需要的是搜索，不是判断。</p>
+<hr>
+<h2>2. 设计取舍</h2>
+<blockquote>
+<p>这一节是全文最该体现&quot;为什么&quot;的地方。每条决策都应写成「候选方案 → 选择 → 理由 → 代价」。</p>
+</blockquote>
+<h3>2.1 不做账号体系</h3>
+<p>账号体系一开始是<strong>计划要做的</strong>，后来主动砍掉。两个原因：</p>
+<ol>
+<li><strong>时间与安全</strong>。短时间做出来的账号体系，安全性无法保证。而在&quot;有一个能用的账号&quot;和&quot;用户数据是安全的&quot;之间，后者重要得多。</li>
+<li><strong>存储成本</strong>。资金有限，服务器配置很低，没有余力搭数据库。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>选择</th>
+<th>理由</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>账号 + 云端数据库</td>
+<td>❌</td>
+<td>短周期内无法保证数据安全；服务器资源不足</td>
+<td>换设备数据不迁移</td>
+</tr>
+<tr>
+<td><strong>纯浏览器存储</strong></td>
+<td>✅</td>
+<td>数据不出浏览器，不存在&quot;托管用户数据&quot;的责任</td>
+<td>受 localStorage 5MB 限制；清缓存即丢（已提供导出备份）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这不是&quot;偷懒省事&quot;，而是把风险明确地留在自己可控的范围内：宁可牺牲同步能力，也不做半吊子的数据托管。</p>
+</blockquote>
+<h3>2.2 不做向量检索</h3>
+<p>考虑过，评估后放弃。拦路的不是&quot;难写&quot;，而是四件工程代价：</p>
+<table>
+<thead>
+<tr>
+<th>成本项</th>
+<th>具体问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>存储与计算</td>
+<td>高维向量的存储和相似度计算开销高于当前规模所需</td>
+</tr>
+<tr>
+<td>嵌入质量</td>
+<td>检索效果几乎完全由嵌入模型决定，选型失败则整套方案失效</td>
+</tr>
+<tr>
+<td>元数据过滤</td>
+<td>需要按时间、来源、标签过滤，向量库的过滤能力参差</td>
+</tr>
+<tr>
+<td>增量更新</td>
+<td>新增/删除素材要维护索引一致性，还要处理多租户隔离</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>选择</th>
+<th>理由</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>向量库 + 嵌入模型</td>
+<td>❌</td>
+<td>上述四项成本与当前素材规模不匹配</td>
+<td>——</td>
+</tr>
+<tr>
+<td><strong>词面打分 + 云端模型判语义</strong></td>
+<td>✅</td>
+<td>检索可离线、零成本、结果可解释；语义判断交给模型</td>
+<td>同义改写可能召回不到</td>
+</tr>
+</tbody></table>
+<p>放弃向量检索之后，语义召回由云端模型承担。这个替代在当时看是划算的：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>向量检索</th>
+<th>云端模型替代</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现成本</td>
+<td>需索引、嵌入、增量更新</td>
+<td>一次 API 调用</td>
+</tr>
+<tr>
+<td>效果来源</td>
+<td>嵌入模型质量决定上限</td>
+<td>大模型本身的语言理解</td>
+</tr>
+<tr>
+<td>运行成本</td>
+<td>存储 + 计算常驻</td>
+<td>按次计费，闲时为零</td>
+</tr>
+<tr>
+<td>依赖</td>
+<td>无网络要求</td>
+<td><strong>必须有 Key、必须联网</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>作者当时的判断原话：向量检索难度大，于是考虑用云端模型替代；替代之后，云端效果相比向量检索还有一些优势。</p>
+</blockquote>
+<p>代价在 2.5 里交代：一旦没有 Key 或断网，语义能力就退回词面匹配。</p>
+<p><strong>这个决定直接引出了 2.4</strong>：既然不靠向量做语义召回，模型的判断就不能被&quot;检索不到&quot;卡死，于是允许它在标注清楚的前提下补充库外知识。</p>
+<h3>2.3 冲突必须由用户判断</h3>
+<p>模型只输出「这两条矛盾，争的是 X」，<strong>不给结论</strong>。用户必须选一边或选「都保留」，并写一句判断。</p>
+<blockquote>
+<p>理由（作者原话）：学习效果来自持续的反馈，而不仅仅是内容堆砌。让用户自己处理冲突，一是让他知道自己的知识库里存在矛盾观点，二是让他自行决定取舍——这比模型自动处理更贴近他真实的想法。</p>
+</blockquote>
+<p>换句话说：模型替用户决定，产品就退化成&quot;总结器&quot;，用户失去判断力的训练。</p>
+<p>代价：多一步操作，流程更重。这是<strong>刻意的摩擦</strong>。</p>
+<h3>2.4 允许库外知识，但必须分区</h3>
+<p>初版只能答库内内容，导致「库里有相关内容但检索不到」时直接失效。现改为两段式：</p>
+<pre><code>【库中依据】  只用素材，每句带 [1][2]
+【库外补充】  模型自身知识，前端用琥珀色块单独呈现
+</code></pre>
+<blockquote>
+<p>理由：拒绝回答会毁掉可用性；混在一起会毁掉可信度。分区是唯一同时保住两者的做法。</p>
+</blockquote>
+<h3>2.5 云端全部可降级</h3>
+<p>没有 Key、断网时，检索、缺口、简报、图谱（本地算法）全部可用。</p>
+<blockquote>
+<p>理由：很多 AI 作品断网即白屏。可降级意味着产品的核心价值不完全依赖外部服务。</p>
+</blockquote>
+<hr>
+<h2>3. 系统架构</h2>
+<h3>3.1 技术栈</h3>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>选型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>框架</td>
+<td>Next.js 15.5（App Router）+ React 19</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>TypeScript（strict）</td>
+</tr>
+<tr>
+<td>样式</td>
+<td>Tailwind v4（CSS-first）+ 设计令牌</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>Zustand（含 localStorage 持久化）</td>
+</tr>
+<tr>
+<td>3D</td>
+<td>three.js 0.186</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>pdfjs-dist（浏览器端）+ unpdf（服务端兜底）</td>
+</tr>
+<tr>
+<td>部署</td>
+<td>阿里云轻量服务器 · pm2 · Node 22</td>
+</tr>
+</tbody></table>
+<h3>3.2 结构</h3>
+<pre><code>app/
+  page.tsx                落地页（Server Component）
+  kb/page.tsx             知识库工作台
+  kb/settings/page.tsx    模型接入
+  api/                    9 个接口
+components/kb/            8 个视图 + 弹窗 + 抽屉 + 图谱
+lib/kb/                   领域逻辑（检索、图谱、冲突、生成、备份）
+lib/server/               服务端：模型解析、SSRF 防护、错误翻译
+</code></pre>
+<h3>3.3 数据流</h3>
+<pre><code>用户操作
+   ↓
+Zustand store ──localStorage──→ 素材 / 冲突 / 关系 / 配置
+   ↓ 需要云端时
+fetch /api/*  ──→ 服务端校验（SSRF / 限流 / token 预算）
+                     ↓
+                 转发给 OpenAI 兼容端点（用户 Key 优先，其次服务端 Key）
+                     ↓
+                 结果回到 store，落 localStorage
+</code></pre>
+<p>关键点：<strong>服务端不存任何用户数据</strong>，只做转发与防护。
+<img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/diagram-architecture.png" alt="图 1　系统架构：浏览器持有数据，服务端只做转发与防护"></p>
+<p align="center"><sub>图 1　系统架构：浏览器持有数据，服务端只做转发与防护</sub></p><p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/01-library.png" alt="图 2　知识库主视图：搜索、清单、标签与「为什么存它」"></p>
+<p align="center"><sub>图 2　知识库主视图：搜索、清单、标签与「为什么存它」</sub></p><h3>3.4 九个接口</h3>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>作用</th>
+<th>防护</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/relations</code></td>
+<td>判定素材间关系</td>
+<td>限流 + token 记账 + JSON 容错</td>
+</tr>
+<tr>
+<td><code>/api/generate</code></td>
+<td>简报 / 问答 / 意图 / 冲突分析</td>
+<td>同左</td>
+</tr>
+<tr>
+<td><code>/api/vision</code></td>
+<td>图片转文字</td>
+<td>图片头校验 + 体积上限</td>
+</tr>
+<tr>
+<td><code>/api/vision/test</code></td>
+<td>视觉能力测试（真发图）</td>
+<td>30s 超时</td>
+</tr>
+<tr>
+<td><code>/api/pdf</code></td>
+<td>PDF 解析（服务端兜底）</td>
+<td>体积/页数上限 + 抓取限额</td>
+</tr>
+<tr>
+<td><code>/api/ingest</code></td>
+<td>网页正文抓取</td>
+<td><strong>SSRF 防护</strong> + 逐跳重定向校验 + 2MB 上限</td>
+</tr>
+<tr>
+<td><code>/api/llm/test</code></td>
+<td>连接测试 + 列出可用模型</td>
+<td>15s 超时</td>
+</tr>
+<tr>
+<td><code>/api/health</code></td>
+<td>部署体检 + 额度查询</td>
+<td>不返回任何密钥内容</td>
+</tr>
+<tr>
+<td><code>/api/metrics</code></td>
+<td>运行时指标（延迟、成功率、错误分布）</td>
+<td>只读聚合，不含任何用户内容</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>4. 关键实现</h2>
+<h3>4.1 本地检索与引用</h3>
+<p><code>lib/kb/answer.ts</code>：分词 → 覆盖度打分 → 取前 N 条 → 拼原文片段。</p>
+<ul>
+<li>相关性阈值：<code>hits &gt;= 2 &amp;&amp; score &gt;= top * 0.45</code>，避免微弱命中污染结果</li>
+<li>已确认分歧的素材对被同时拉入，保证冲突不被&quot;检索漏掉&quot;</li>
+<li>引用编号与展示编号严格对齐（模型标注的 <code>[1]</code> 不会指错）</li>
+</ul>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/06-ask-cloud.png" alt="图 3　问答的两段式输出：上半部分每个结论带 [1][2] 出处，下半部分是独立的「库外补充」"></p>
+<p align="center"><sub>图 3　问答的两段式输出：上半部分每个结论带 [1][2] 出处，下半部分是独立的「库外补充」</sub></p><p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/09-ask-noextra.png" alt="图 3b　材料足够时，界面明确说明「没有补充库外内容」，避免被误认为功能缺失"></p>
+<p align="center"><sub>图 3b　材料足够时，界面明确说明「没有补充库外内容」，避免被误认为功能缺失</sub></p><p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/11-ask-empty-extra.png" alt="图 3c　库里完全没有相关内容时：仍可让模型补充背景，结果全部标为「库外补充」"></p>
+<p align="center"><sub>图 3c　库里完全没有相关内容时：仍可让模型补充背景，结果全部标为「库外补充」</sub></p><h3>4.2 关系判定的容错</h3>
+<p>模型输出不可控，做了四层容错：</p>
+<ol>
+<li><strong>去代码围栏</strong> + 按括号深度截取最外层 JSON</li>
+<li><strong>字段别名</strong>：<code>a|source|from</code>、<code>b|target|to</code></li>
+<li><strong>kind 归一</strong>：<code>contradiction/conflict → contradicts</code></li>
+<li><strong>失败重试一次</strong>，追加更严格的指令</li>
+</ol>
+<blockquote>
+<p>若不处理，模型返回 <code>source/target</code> 时会被静默丢弃，接口返回 200 但关系为 0——用户以为&quot;模型觉得没关系&quot;。</p>
+</blockquote>
+<h3>4.3 冲突的派生与可逆</h3>
+<p>冲突不是预置数据，而是从 <code>kind === &quot;contradicts&quot;</code> 的关系<strong>派生</strong>出来的。</p>
+<ul>
+<li>判断必须填写 note 才能关闭</li>
+<li><code>resolveConflict</code> 完全可逆：改判时先清除双方的 <code>supersededBy / absorbedBy / disputesWith</code>，再应用新选择</li>
+<li>被吸收的素材进「文件夹」，详情页可交叉跳转到对方</li>
+</ul>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/diagram-conflict-flow.png" alt="图 4　冲突处理链路：模型只指出矛盾，判断由用户完成"></p>
+<p align="center"><sub>图 4　冲突处理链路：模型只指出矛盾，判断由用户完成</sub></p><p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/03-conflicts.png" alt="图 5　冲突页：必须给出判断才能收口，可选「让模型说清分歧，并可追问」"></p>
+<p align="center"><sub>图 5　冲突页：必须给出判断才能收口，可选「让模型说清分歧，并可追问」</sub></p><h3>4.4 3D 图谱的性能</h3>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DPR 上限 1.25</td>
+<td>2 倍屏像素少 44%</td>
+</tr>
+<tr>
+<td>30fps 上限 + 离屏暂停</td>
+<td>静止时几乎零开销</td>
+</tr>
+<tr>
+<td><strong>泛光默认关闭</strong>，测 8 帧渲染耗时 &lt; 7ms 才开</td>
+<td>弱卡不拖垮</td>
+</tr>
+<tr>
+<td>粒子 900→520，耀斑 110→70</td>
+<td>绘制调用减少</td>
+</tr>
+<tr>
+<td>渲染耗时 &gt; 16ms 自动降级（关泛光 + DPR 0.85）</td>
+<td>兜底</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>关键教训：用 <strong>rAF 间隔</strong>判断&quot;慢&quot;是错的——限帧 30 后间隔恒为 33ms，会误判。必须测渲染耗时。</p>
+</blockquote>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/04-graph.png" alt="图 6　关联图谱：节点大小表示关联度，右侧列出最值得看的关联"></p>
+<p align="center"><sub>图 6　关联图谱：节点大小表示关联度，右侧列出最值得看的关联</sub></p><h3>4.5 PDF：浏览器内解析</h3>
+<p><code>pdfjs-dist</code> 在前端解析，文件不上传，因此<strong>没有 4MB 限制</strong>。</p>
+<ul>
+<li>worker 由 <code>postinstall</code> + <code>prebuild</code> 复制到 <code>public/</code></li>
+<li>300 页 / 7.2MB 的 PDF 实测解析出 127 万字，全程零网络请求</li>
+<li>超过 4 万字自动截断（localStorage 容量所限），并在界面上明确提示</li>
+<li>扫描件无文字层时提示改用图片入口</li>
+</ul>
+<h3>4.6 图片：阶梯压缩</h3>
+<pre><code>[1280, 0.80] → [1100, 0.75] → [960, 0.70] → [800, 0.65] → [640, 0.60]
+目标：base64 ≤ 1.2M，达标即停
+</code></pre>
+<p>实测 6.6MB / 3600×2400 的 PNG，压缩后发给模型的 JSON 仅 112KB。</p>
+<p>视觉能力来自主模型本身：DeepSeek-V4.1-Flash 的输入模态包含图片，所以<strong>不必额外配置视觉模型</strong>；只有换成纯文本模型时，才需要在设置页单独填一个（如 <code>glm-4v-flash</code>）。</p>
+<h3>4.8 从「缺口」到「补上」</h3>
+<p>问答里出现「库外补充」时，就意味着这块证据库里没有。光指出缺口还不够，得能补。</p>
+<p>于是在结果下方给出下一步：<strong>让模型推荐几篇能补上的真实材料，用户决定加不加</strong>。</p>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/12-ask-suggest.png" alt="图 6b　库内无据时给出补充入口，可让模型推荐真实材料"></p>
+<p align="center"><sub>图 6b　库内无据时给出补充入口，可让模型推荐真实材料</sub></p><p>设计上有三条约束：</p>
+<table>
+<thead>
+<tr>
+<th>约束</th>
+<th>做法</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>不许编造链接</td>
+<td>提示词要求「不确定就留空 url」</td>
+<td>假链接比没建议更糟</td>
+</tr>
+<tr>
+<td>用户决定</td>
+<td>每条都有独立的「抓取正文并加入知识库」</td>
+<td>推荐不等于入库</td>
+</tr>
+<tr>
+<td>抓不到就说</td>
+<td>抓取失败直接报错，不假装成功</td>
+<td>假成功会污染知识库</td>
+</tr>
+</tbody></table>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/13-ask-suggest-added.png" alt="图 6c　抓取成功后素材进入知识库，带着「为什么存它」的理由"></p>
+<p align="center"><sub>图 6c　抓取成功后素材进入知识库，带着「为什么存它」的理由</sub></p><p>入库时会自动写入一条收藏理由（如「为回答「大学应该学 AI 学什么？」补充的证据」），
+这样新增的素材仍然符合产品规则：<strong>存进来就要有理由</strong>。</p>
+<p>实测：问「大学应该学 AI 学什么」，模型给出 CS2023、AIMA、CS229 等真实材料；
+点其中一条的 arXiv 链接，成功抓到《Attention Is All You Need》并入库，素材数 8 → 9。</p>
+<h3>4.7 安全</h3>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SSRF</strong>（<code>/api/ingest</code> 抓任意 URL）</td>
+<td>私网/回环/元数据地址拦截；DNS 解析后再校验；重定向逐跳校验；响应体 2MB 上限</td>
+</tr>
+<tr>
+<td>配额耗尽导致账单失控</td>
+<td>每 IP 20 次/天 + 全站 300 次/天 + <strong>token 预算 90 万/天</strong></td>
+</tr>
+<tr>
+<td>配额计数跨路由失效</td>
+<td>计数挂 <code>globalThis</code>（Next 各路由是独立模块）</td>
+</tr>
+<tr>
+<td>Key 泄露</td>
+<td>只存浏览器或服务端环境变量；不落库、不打日志、不进仓库</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>4.9 可观测性与错误可诊断</h3>
+<p>产品是本地优先的：数据不出浏览器，也没有账号。所以「可观测性」只该回答一个问题——
+<strong>线上出问题时，能不能判断坏在哪一层。</strong></p>
+<h4>记录什么，不记录什么</h4>
+<table>
+<thead>
+<tr>
+<th>记录</th>
+<th>不记录</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>路由名、状态码、耗时</td>
+<td>用户的问题内容</td>
+</tr>
+<tr>
+<td>token 消耗、是否共享 Key</td>
+<td>素材标题或正文</td>
+</tr>
+<tr>
+<td>错误分类（auth / quota / upstream / invalid）</td>
+<td>API Key</td>
+</tr>
+<tr>
+<td>聚合后的 P50 / P95</td>
+<td>IP 地址</td>
+</tr>
+</tbody></table>
+<p>这条边界是刻意的：一旦日志里出现用户的问题，产品最核心的隐私主张就不成立了。</p>
+<h4>实现</h4>
+<ul>
+<li>计数挂在 <code>globalThis</code>：Next 每个路由是独立模块，模块级变量不共享（做 token 预算时踩过这个坑）</li>
+<li>用一个 <code>withMetrics(route, handler)</code> 包装器，套在 5 个业务路由上</li>
+<li>每个路由保留最近 200 次耗时样本，用来算分位</li>
+</ul>
+<p><code>GET /api/metrics</code> 的返回（实测）：</p>
+<pre><code class="language-json">{
+  &quot;uptimeMinutes&quot;: 1,
+  &quot;requests&quot;: { &quot;total&quot;: 2, &quot;ok&quot;: 1, &quot;fail&quot;: 1, &quot;successRate&quot;: 0.5 },
+  &quot;routes&quot;: [
+    { &quot;route&quot;: &quot;generate&quot;, &quot;count&quot;: 2, &quot;ok&quot;: 1, &quot;fail&quot;: 1, &quot;p50&quot;: 104, &quot;p95&quot;: 4086 },
+    { &quot;route&quot;: &quot;relations&quot;, &quot;count&quot;: 1, &quot;ok&quot;: 1, &quot;fail&quot;: 0, &quot;p50&quot;: 1292, &quot;p95&quot;: 1292 }
+  ],
+  &quot;errors&quot;: { &quot;upstream&quot;: 1 },
+  &quot;tokensUsed&quot;: 715,
+  &quot;note&quot;: &quot;只含运行时聚合数据：不含问题、素材、Key 与 IP&quot;
+}
+</code></pre>
+<p>设置 <code>METRICS_TOKEN</code> 后需要口令才能读；不设置则返回聚合数字。两种模式都不含用户内容。</p>
+<h4>错误可诊断，而不是「请联系管理员」</h4>
+<p>最初的建议是「报错就弹联系管理员」。这里没有采纳，原因不是不想做容错，而是
+<strong>这个产品没有管理员</strong>——数据在用户浏览器里，没有账号体系，也没有人会接那个电话。
+一个承诺了却接不住任何人的入口，比没有更糟。</p>
+<p>替代做法是让错误<strong>可复制、可定位</strong>：错误条右侧有「复制」，点一下得到</p>
+<pre><code>时间    2026/11/6 01:12:44
+页面    /kb
+接口    POST /api/generate
+状态    502
+错误    上游服务暂时不可用
+浏览器  Mozilla/5.0 (Windows NT 10.0; Win64; x64) … Chrome/142
+</code></pre>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/14-error-note.png" alt="图 8b　错误提示：一句话说清 + 一句「能做什么」+ 可复制的诊断信息"></p>
+<p align="center"><sub>图 8b　错误提示：一句话说清 + 一句「能做什么」+ 可复制的诊断信息</sub></p><p>这比「请联系管理员」更符合产品形态：<strong>单人使用，也能自己排查，或者把这段发给开发者。</strong></p>
+<h2>5. 评测</h2>
+<blockquote>
+<p>所有数字均为线上环境（<a href="http://8.163.104.134%EF%BC%89%E5%AE%9E%E6%B5%8B%EF%BC%8CDeepSeek-V4.1-Flash%EF%BC%8C2025-11%E3%80%82">http://8.163.104.134）实测，DeepSeek-V4.1-Flash，2025-11。</a></p>
+</blockquote>
+<h3>5.1 功能验证</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>方法</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设计规则</td>
+<td><code>pnpm audit:ui</code>（8 条）</td>
+<td>8/8</td>
+</tr>
+<tr>
+<td>单元测试</td>
+<td><code>node --test</code></td>
+<td>6/6</td>
+</tr>
+<tr>
+<td>端到端</td>
+<td><code>pnpm test:e2e</code>（真实 Chrome）</td>
+<td>4/4</td>
+</tr>
+<tr>
+<td>视觉识别</td>
+<td>296KB 界面截图</td>
+<td>完整读出结构与文字</td>
+</tr>
+<tr>
+<td>PDF 解析</td>
+<td>7.2MB / 300 页</td>
+<td>127 万字，零上传</td>
+</tr>
+</tbody></table>
+<h3>5.2 关系判定质量</h3>
+<p><strong>方法</strong>：人工设计 20 条素材并标注真值，其中</p>
+<ul>
+<li>2 对已知矛盾（Copilot 55.8% vs METR −19%；长上下文够用论 vs Lost in the Middle）</li>
+<li>1 对重复（同一份 MIT 报告的两种表述）</li>
+<li>2 对支持关系</li>
+<li>7 条互不相关的学习方法素材（用于测误连）</li>
+</ul>
+<p>每轮把 20 条一次性交给模型，连续跑 4 轮。</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>结果</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>矛盾召回</strong></td>
+<td><strong>2 / 2</strong></td>
+<td>4 轮全部命中，无遗漏</td>
+</tr>
+<tr>
+<td><strong>重复召回</strong></td>
+<td><strong>1 / 1</strong></td>
+<td>同上</td>
+</tr>
+<tr>
+<td>矛盾误报</td>
+<td>0.3 条/轮</td>
+<td>偶发把「RAG 优于纯参数模型」与「全文入上下文替代 RAG」判为矛盾，可辩护</td>
+</tr>
+<tr>
+<td>无关素材误连</td>
+<td>4.0 条/轮</td>
+<td>7 条学习方法之间被判为 related，语义上可辩护但偏松</td>
+</tr>
+<tr>
+<td>平均关系数</td>
+<td>13.0 条</td>
+<td>20 条素材，约 1.3 条/素材</td>
+</tr>
+<tr>
+<td>平均耗时</td>
+<td><strong>12.3 秒</strong></td>
+<td>含网络与推理</td>
+</tr>
+<tr>
+<td>平均 token</td>
+<td><strong>3,302</strong></td>
+<td>单次重算成本约 ¥0.004</td>
+</tr>
+</tbody></table>
+<p><strong>过程中发现并修复的问题</strong>：初版 <code>max_tokens = 2200</code>，20 条素材时有 1/3 的请求被截断，返回「输出被长度限制截断」。提高到 4096 后 4/4 成功。</p>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/diagram-eval.png" alt="图 7　关系判定评测结果：矛盾与重复 100% 检出，噪声来自泛相关"></p>
+<p align="center"><sub>图 7　关系判定评测结果：矛盾与重复 100% 检出，噪声来自泛相关</sub></p>
+**结论**：模型在**该找的矛盾上没漏**（召回 100%），代价是**关联判得偏松**——把同属"主动学习"的七条方法互相连了起来。对产品的含义是：高价值信号（矛盾）可靠，低价值信号（泛相关）需要用户自己筛。<h3>5.3 问答质量</h3>
+<p><strong>方法</strong>：4 个问题覆盖三类场景，逐条人工判定。判据：是否带引用编号、是否区分&quot;库中依据/库外补充&quot;、是否编造。</p>
+<table>
+<thead>
+<tr>
+<th>用例</th>
+<th>场景</th>
+<th>引用</th>
+<th>两段结构</th>
+<th>人工判定</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>库内可答（矛盾对比）</td>
+<td>✅ [1][2]</td>
+<td>✅</td>
+<td><strong>通过</strong>：分别陈述两实验，并指出条件不同</td>
+</tr>
+<tr>
+<td>B</td>
+<td>库内可答（单材料）</td>
+<td>✅ [1]</td>
+<td>✅</td>
+<td><strong>通过</strong>：未编造论文外数据</td>
+</tr>
+<tr>
+<td>C</td>
+<td><strong>库内不可答</strong>（注意力复杂度）</td>
+<td>✅</td>
+<td>✅</td>
+<td><strong>通过</strong>：明确说「素材中没有相关内容」，复杂度只出现在库外补充</td>
+</tr>
+<tr>
+<td>D</td>
+<td>跨材料综合（能否替代 RAG）</td>
+<td>✅ [1][2][3]</td>
+<td>✅</td>
+<td><strong>通过</strong>：分述两种立场与成本，未合并成单一结论</td>
+</tr>
+<tr>
+<td>E</td>
+<td>库内完全无结果（大学学 AI 学什么）</td>
+<td>无（无素材）</td>
+<td>✅</td>
+<td><strong>通过</strong>：明确说「素材为空」，全部内容进入库外补充</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>引用标注率</td>
+<td>4 / 4</td>
+</tr>
+<tr>
+<td>两段结构合规率</td>
+<td>4 / 4</td>
+</tr>
+<tr>
+<td>编造数据</td>
+<td>0 例</td>
+</tr>
+<tr>
+<td>平均耗时</td>
+<td><strong>3.3 秒</strong>（2.6–4.4s）</td>
+</tr>
+<tr>
+<td>平均 token</td>
+<td><strong>668</strong>（527–913）</td>
+</tr>
+</tbody></table>
+<p><strong>C 用例最能说明设计意图</strong>：模型没有硬凑答案，而是先说&quot;这两条素材都是 AI 编程工具实验，无法回答&quot;，再把复杂度知识放进库外补充。</p>
+<h3>5.4 性能</h3>
+<p>测试条件：Chrome 移动端 390×844，<strong>4G 网络（9Mbps / RTT 85ms）+ 4 倍 CPU 降速</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>页面</th>
+<th>LCP</th>
+<th>DOMContentLoaded</th>
+<th>load</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>落地页 <code>/</code></td>
+<td><strong>2,628ms</strong></td>
+<td>2,873ms</td>
+<td>2,874ms</td>
+</tr>
+<tr>
+<td>工作台 <code>/kb</code></td>
+<td><strong>1,276ms</strong></td>
+<td>332ms</td>
+<td>334ms</td>
+</tr>
+</tbody></table>
+<p>其他指标：</p>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>图谱帧率</td>
+<td>桌面端稳定在 30fps 上限内（主动限帧）</td>
+</tr>
+<tr>
+<td>移动端横向溢出</td>
+<td>0px（8 个视图全部通过）</td>
+</tr>
+<tr>
+<td>云端重算（8 条素材）</td>
+<td>12–20 秒</td>
+</tr>
+<tr>
+<td>图片压缩</td>
+<td>6.6MB PNG → 112KB 请求体</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>落地页 LCP 偏高，主要来自 3D 星云首次编译着色器；已做 DPR 上限、30fps 限帧与离屏暂停，但在 4 倍 CPU 降速下仍有 2.6 秒。工作台页面因为没有 3D 首屏，LCP 仅 1.3 秒。</p>
+</blockquote>
+<h3>5.5 评测本身的局限</h3>
+<p>这些数字能说明&quot;能用&quot;，但<strong>不足以说明&quot;可靠&quot;</strong>，原因有三：</p>
+<ol>
+<li><strong>规模小</strong>：20 条素材，无法代表上百条的真实知识库（关系数随规模超线性增长）</li>
+<li><strong>真值单人标注</strong>：是否算&quot;矛盾&quot;本身有判断空间，换个人标可能得到不同数字</li>
+<li><strong>只测了一个模型</strong>：DeepSeek-V4.1-Flash，换模型结论可能完全不同</li>
+</ol>
+<p>如果要让它更像实验，至少还要补：多名标注者、更大的素材集、跨模型对比。</p>
+<h2>6. 局限与后续</h2>
+<h3>6.1 已知局限</h3>
+<ol>
+<li><strong>数据只在单台浏览器</strong>：换设备不迁移，清缓存即丢（可导出 JSON 备份）</li>
+<li><strong>localStorage 约 5MB</strong>：单条正文入库上限 4 万字</li>
+<li><strong>无账号体系</strong>：无法分享、协作</li>
+<li><strong>冲突判定依赖模型</strong>：模型判错时用户只能改判，不能校正模型</li>
+<li><strong>无 HTTPS</strong>：当前 HTTP 访问，演示够用</li>
+<li><strong>评测规模有限</strong>：20 条素材、单人标注真值、仅测一个模型（详见 5.5）</li>
+</ol>
+<h3>6.2 如果再多两周</h3>
+<p>会先补账号体系——但这<strong>不推翻 2.1 的决定</strong>，而是承认那是&quot;时间与资源受限下的取舍&quot;：</p>
+<table>
+<thead>
+<tr>
+<th>约束</th>
+<th>当时的情况</th>
+<th>有两周的情况</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>时间</td>
+<td>安全做不完</td>
+<td>够做实名 + 会话 + 加密存储</td>
+</tr>
+<tr>
+<td>服务器</td>
+<td>2 核 2G，无余力建库</td>
+<td>可加一台数据库实例</td>
+</tr>
+<tr>
+<td>结论</td>
+<td>宁可不做，也不做半吊子</td>
+<td>可以做完整版本</td>
+</tr>
+</tbody></table>
+<p>顺序会是：<strong>账号 → 加密存储 → 端到端同步 → 冲突合并策略</strong>。最后一步最难，因为要处理&quot;两台设备同时改同一条素材&quot;。</p>
+<h3>6.3 最不放心的地方：会不会没人用</h3>
+<p>技术上最不放心的是数据只在本地；但<strong>真正的不安全感来自需求本身</strong>——这个产品解决的是「收藏了不看」，而这件事的痛点强度，只有真实用户能验证。</p>
+<p>目前支撑它的证据只有三条：</p>
+<ol>
+<li>作者自己的短视频收藏夹（第 1 节）</li>
+<li>身边同学的类似反馈</li>
+<li>20 条素材上的功能验证</li>
+</ol>
+<p>这三条都不足以证明&quot;有人愿意为此改变行为&quot;。<strong>一个逼用户输出的工具，最大的风险是用户嫌麻烦</strong>。</p>
+<p>这也是下一步最该做的事：<strong>找 5 个真实用户用两周，看他们第 8 天还会不会打开</strong>。如果不会，功能做得再多也没有意义。</p>
+<h3>6.4 从&quot;作品&quot;到&quot;产品&quot;还差什么</h3>
+<ul>
+<li>账号与数据同步（能力问题）</li>
+<li>真实用户的使用数据（验证问题，比能力更关键）</li>
+<li>关系判定的持续评测与提示词迭代（质量问题）</li>
+</ul>
+<hr>
+<h2>7. 附录</h2>
+<h3>7.1 复现</h3>
+<pre><code class="language-bash">pnpm install
+pnpm dev            # 开发
+pnpm demo           # 构建 + 启动
+pnpm verify         # 设计规则 + 类型 + 单测
+pnpm test:e2e       # 浏览器冒烟（需先启动服务）
+</code></pre>
+<h3>7.2 部署</h3>
+<p>见 <code>docs/DEPLOY.md</code>（Vercel）与 <code>deploy/README.md</code>（自建服务器）、<code>deploy/aliyun.md</code>（阿里云）。</p>
+<h3>7.3 数据来源</h3>
+<p>内置 8 条素材均为<strong>真实公开材料</strong>，标题、日期、链接可核对。其中两条（GitHub Copilot 对照实验 / METR 随机对照实验）是<strong>刻意选的矛盾证据</strong>，用于演示冲突检测。</p>
+<p><img src="file:///D:/DeepSeekHarness/agent-studio/docs/report/07-settings.png" alt="图 8　模型接入页：主模型支持图片时，视觉三栏留空即可复用"></p>
+<p align="center"><sub>图 8　模型接入页：主模型支持图片时，视觉三栏留空即可复用</sub></p><h3>7.4 第三方依赖</h3>
+<table>
+<thead>
+<tr>
+<th>依赖</th>
+<th>用途</th>
+<th>许可</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>next / react</td>
+<td>框架</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>three</td>
+<td>3D 图谱</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>pdfjs-dist</td>
+<td>PDF 解析</td>
+<td>Apache-2.0</td>
+</tr>
+<tr>
+<td>unpdf</td>
+<td>服务端 PDF 兜底</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>lucide-react</td>
+<td>图标</td>
+<td>ISC</td>
+</tr>
+<tr>
+<td>zustand</td>
+<td>状态</td>
+<td>MIT</td>
+</tr>
+</tbody></table>
+
+</body></html>

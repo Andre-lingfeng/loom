@@ -42,7 +42,7 @@ curl http://127.0.0.1:3000/api/health
 | `DEEPSEEK_MODEL` | 否 | 默认 `deepseek-flash` |
 | `VISION_API_KEY` | 否 | 图片入库用；留空则复用上面的 Key |
 | `VISION_BASE_URL` | 否 | 例如智谱 `https://open.bigmodel.cn/api/paas/v4` |
-| `VISION_MODEL` | 否 | 例如 `glm-4v-flash` |
+| `VISION_MODEL` | 否 | 主模型看不懂图时才需要，例如 `glm-4v-flash`；留空则复用主模型 |
 | `DEMO_QUOTA_PER_IP` | 否 | 每 IP 每天云端调用上限，默认 20 |
 | `DEMO_QUOTA_GLOBAL` | 否 | 全局每天上限，默认 300 |
 

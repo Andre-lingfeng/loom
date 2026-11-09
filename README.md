@@ -82,7 +82,7 @@ pnpm build
 | 样式 | Tailwind v4（Aurora 色阶，颜色统一走 `--kb-*` 变量） |
 | 状态 | Zustand 单 store |
 | 3D | three.js（**按需加载**，不进首屏）+ 自定义片元着色器 / 点精灵着色器 |
-| 模型 | 任意 OpenAI 兼容端点（默认 DeepSeek）；视觉模型单独配置（GLM-4V / qwen-vl） |
+| 模型 | 任意 OpenAI 兼容端点（默认 DeepSeek-V4.1-Flash，**本身支持图片**）；也可另配视觉模型（GLM-4V / qwen-vl） |
 
 ### 几个关键决定
 
@@ -174,7 +174,7 @@ DEEPSEEK_API_KEY=sk-...
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
 DEEPSEEK_MODEL=deepseek-flash
 
-# 视觉模型（图片入库，可选）
+# 视觉模型（可选）：主模型支持图片时，下面三行全部留空即可复用
 VISION_API_KEY=sk-...
 VISION_BASE_URL=https://open.bigmodel.cn/api/paas/v4
 VISION_MODEL=glm-4v-flash
