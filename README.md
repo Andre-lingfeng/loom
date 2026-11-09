@@ -165,6 +165,7 @@ pnpm verify
 | `pnpm eval:qa` | 问答质量抽测 |
 | `pnpm eval:perf` | 首屏性能测量（4G + 降速） |
 | `pnpm build:pdf` | 把技术报告渲染成 PDF |
+| `pnpm build:pdf:all` | 技术报告 + 演示稿 + 分镜脚本，三份 PDF |
 | `pnpm verify:full` | 以上全部 |
 
 ---

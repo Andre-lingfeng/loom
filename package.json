@@ -19,7 +19,10 @@
     "eval:relations": "node evals/relations.mjs",
     "eval:qa": "node evals/qa.mjs",
     "eval:perf": "node evals/perf.mjs",
-    "build:pdf": "node scripts/build-pdf.mjs"
+    "build:pdf": "node scripts/build-pdf.mjs",
+    "build:pdf:video": "node scripts/build-pdf.mjs docs/VIDEO-SCRIPT.md \"docs/report/织识-Loom-演示视频脚本.pdf\" --no-cover --title \"织识 Loom · 演示视频脚本\"",
+    "build:pdf:demo": "node scripts/build-pdf.mjs docs/DEMO-SCRIPT.md \"docs/report/织识-Loom-演示稿.pdf\" --no-cover --title \"织识 Loom · 演示稿\"",
+    "build:pdf:all": "pnpm build:pdf && pnpm build:pdf:video && pnpm build:pdf:demo"
   },
   "dependencies": {
     "clsx": "^2.1.1",
