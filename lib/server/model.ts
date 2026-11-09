@@ -42,7 +42,7 @@ export function resolveTextModel(payload: {
       "",
     ),
     apiKey: envKey,
-    model: clean(process.env.DEEPSEEK_MODEL) || "deepseek-chat",
+    model: clean(process.env.DEEPSEEK_MODEL) || "deepseek-flash",
     shared: true,
   };
 }

@@ -172,7 +172,7 @@ pnpm verify
 # .env.local（或平台的环境变量配置）
 DEEPSEEK_API_KEY=sk-...
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-flash
 
 # 视觉模型（图片入库，可选）
 VISION_API_KEY=sk-...

@@ -27,8 +27,8 @@ export const PROVIDERS: {
     key: "deepseek",
     label: "DeepSeek",
     baseUrl: "https://api.deepseek.com/v1",
-    model: "deepseek-chat",
-    note: "国内直连，便宜；纯文本，不支持图片",
+    model: "deepseek-flash",
+    note: "国内直连，便宜；V4.1-Flash 支持图片输入",
   },
   {
     key: "zhipu",

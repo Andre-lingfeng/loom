@@ -321,7 +321,7 @@ export default function ApiSettingsPage() {
               <input
                 value={config.model}
                 onChange={(event) => patch({ model: event.target.value })}
-                placeholder="deepseek-chat"
+                placeholder="deepseek-flash"
                 spellCheck={false}
                 className={cn(input, "font-mono text-xs")}
               />

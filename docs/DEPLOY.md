@@ -39,7 +39,7 @@ curl http://127.0.0.1:3000/api/health
 | `DEMO_TOKEN_BUDGET` | 300000 | 共享 Key 每天可用 token 总量，用尽后提示用户自行配置 |
 | `DEEPSEEK_API_KEY` | 是 | 演示用共享 Key。评审不用自己填 |
 | `DEEPSEEK_BASE_URL` | 否 | 默认 `https://api.deepseek.com/v1` |
-| `DEEPSEEK_MODEL` | 否 | 默认 `deepseek-chat` |
+| `DEEPSEEK_MODEL` | 否 | 默认 `deepseek-flash` |
 | `VISION_API_KEY` | 否 | 图片入库用；留空则复用上面的 Key |
 | `VISION_BASE_URL` | 否 | 例如智谱 `https://open.bigmodel.cn/api/paas/v4` |
 | `VISION_MODEL` | 否 | 例如 `glm-4v-flash` |
