@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { explainProviderError } from "@/lib/server/errors";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 /**
  * 64×64 纯红 PNG（136 字节）。

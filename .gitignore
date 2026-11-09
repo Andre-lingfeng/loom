@@ -22,3 +22,7 @@ loom-backup-*.json
 
 # PDF 构建中间产物
 docs/report/report.html
+
+# 服务端环境变量文件（构建时生成，绝不能入库）
+.env.production
+.env.*.production

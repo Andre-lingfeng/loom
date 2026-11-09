@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { explainProviderError } from "@/lib/server/errors";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 /**
  * 连接测试：用 1 个 token 的请求验证 baseUrl / apiKey / model 是否可用。
