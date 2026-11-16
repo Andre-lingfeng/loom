@@ -15,3 +15,11 @@
 *.webp binary
 *.ico binary
 *.pdf binary
+
+# 打包产物（体积大，不入库）
+release/
+
+# PDF 不入源码包（在作品文档目录里单独提供）
+docs/report/*.pdf export-ignore
+docs/report/*.png export-ignore
+docs/screenshots/ export-ignore
