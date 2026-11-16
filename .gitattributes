@@ -22,4 +22,4 @@ release/
 # PDF 不入源码包（在作品文档目录里单独提供）
 docs/report/*.pdf export-ignore
 docs/report/*.png export-ignore
-docs/screenshots/ export-ignore
+docs/screenshots/** export-ignore
