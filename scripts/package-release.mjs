@@ -107,6 +107,13 @@ const readme = `织识 Loom · 个人知识库助手
   模型：OpenAI 兼容端点，默认 DeepSeek-V4.1-Flash
 
 ────────────────────────────
+关于源码包
+
+  loom-source.zip 只含源码（约 1.5 MB），不含依赖、构建产物、截图与 PDF。
+  文档里的图片都在两个 PDF 内。
+  解压后执行 pnpm install && pnpm dev 即可运行。
+
+────────────────────────────
 说明
 
 数据只存在浏览器 localStorage，不上传、不需要账号。
